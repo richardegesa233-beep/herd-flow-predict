@@ -35,7 +35,7 @@ export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
   };
 
   return (
-    <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300 animate-fade-in">
+    <Card className="shadow-card hover:shadow-card-hover transition-all duration-300">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-display flex items-center gap-2">
           <Beef className="h-6 w-6 text-primary" />
@@ -49,9 +49,9 @@ export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Adult Cattle */}
-            <div className="space-y-2">
+            <div className="space-y-2 group">
               <Label htmlFor="adults" className="flex items-center gap-2 text-sm font-medium">
-                <Beef className="h-4 w-4 text-primary" />
+                <Beef className="h-4 w-4 text-primary transition-transform group-focus-within:scale-110" />
                 Adult Cattle (breeding age)
               </Label>
               <Input
@@ -61,14 +61,14 @@ export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
                 max={10000}
                 value={adults}
                 onChange={(e) => setAdults(parseInt(e.target.value) || 0)}
-                className="text-lg"
+                className="text-lg transition-all focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
             {/* Young Cattle */}
-            <div className="space-y-2">
+            <div className="space-y-2 group">
               <Label htmlFor="young" className="flex items-center gap-2 text-sm font-medium">
-                <Baby className="h-4 w-4 text-accent" />
+                <Baby className="h-4 w-4 text-accent transition-transform group-focus-within:scale-110" />
                 Young Cattle (calves & yearlings)
               </Label>
               <Input
@@ -78,7 +78,7 @@ export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
                 max={10000}
                 value={young}
                 onChange={(e) => setYoung(parseInt(e.target.value) || 0)}
-                className="text-lg"
+                className="text-lg transition-all focus:ring-2 focus:ring-accent/20"
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
           <div className="space-y-3">
             <Label className="flex items-center gap-2 text-sm font-medium">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              Projection Period: <span className="text-primary font-semibold">{years} years</span>
+              Projection Period: <span className="text-primary font-semibold tabular-nums">{years} years</span>
             </Label>
             <Slider
               value={[years]}
@@ -107,7 +107,7 @@ export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
           <div className="space-y-3">
             <Label className="flex items-center gap-2 text-sm font-medium">
               <Heart className="h-4 w-4 text-chart-secondary" />
-              Birth Rate: <span className="text-primary font-semibold">{birthRate}%</span>
+              Birth Rate: <span className="text-primary font-semibold tabular-nums">{birthRate}%</span>
             </Label>
             <Slider
               value={[birthRate]}
@@ -126,7 +126,7 @@ export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
           <div className="space-y-3">
             <Label className="flex items-center gap-2 text-sm font-medium">
               <Skull className="h-4 w-4 text-destructive" />
-              Mortality Rate: <span className="text-primary font-semibold">{mortalityRate}%</span>
+              Mortality Rate: <span className="text-primary font-semibold tabular-nums">{mortalityRate}%</span>
             </Label>
             <Slider
               value={[mortalityRate]}
@@ -141,8 +141,8 @@ export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
             </p>
           </div>
 
-          <Button type="submit" variant="hero" size="lg" className="w-full">
-            <TrendingUp className="h-5 w-5 mr-2" />
+          <Button type="submit" variant="hero" size="lg" className="w-full hover-lift group">
+            <TrendingUp className="h-5 w-5 mr-2 transition-transform group-hover:translate-x-1" />
             Generate Projection
           </Button>
         </form>

@@ -7,7 +7,6 @@ interface StatCardProps {
   subtitle?: string;
   icon: LucideIcon;
   variant?: "primary" | "secondary" | "accent" | "muted";
-  delay?: number;
 }
 
 export function StatCard({ 
@@ -16,7 +15,6 @@ export function StatCard({
   subtitle, 
   icon: Icon, 
   variant = "primary",
-  delay = 0 
 }: StatCardProps) {
   const variants = {
     primary: "bg-primary/10 text-primary border-primary/20",
@@ -35,20 +33,19 @@ export function StatCard({
   return (
     <div 
       className={cn(
-        "rounded-xl border p-6 transition-all duration-300 hover:shadow-card-hover animate-scale-in",
+        "rounded-xl border p-6 transition-all duration-300 hover-lift",
         variants[variant]
       )}
-      style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium opacity-80">{title}</p>
-          <p className="text-3xl font-bold font-display">{value}</p>
+          <p className="text-3xl font-bold font-display tabular-nums">{value}</p>
           {subtitle && (
             <p className="text-xs opacity-70">{subtitle}</p>
           )}
         </div>
-        <div className={cn("p-3 rounded-lg bg-background/50", iconVariants[variant])}>
+        <div className={cn("p-3 rounded-lg bg-background/50 transition-transform group-hover:scale-110", iconVariants[variant])}>
           <Icon className="h-6 w-6" />
         </div>
       </div>
