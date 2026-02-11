@@ -4,7 +4,7 @@ import { ActualDataForm } from "@/components/ActualDataForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ActualRecord } from "@/lib/herdCalculations";
-import { ClipboardList, Plus, History, TrendingUp, TrendingDown } from "lucide-react";
+import { ClipboardList, Plus, History, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react";
 
 const EventLogging = () => {
   const [records, setRecords] = useState<ActualRecord[]>([]);
@@ -19,7 +19,8 @@ const EventLogging = () => {
 
   const totalBirths = records.reduce((sum, r) => sum + r.births, 0);
   const totalDeaths = records.reduce((sum, r) => sum + r.deaths, 0);
-  const netChange = totalBirths - totalDeaths;
+  const totalSales = records.reduce((sum, r) => sum + r.sales, 0);
+  const netChange = totalBirths - totalDeaths - totalSales;
 
   return (
     <Layout>
@@ -78,8 +79,21 @@ const EventLogging = () => {
               <Card>
                 <CardHeader className="pb-2">
                   <CardDescription className="flex items-center gap-2">
+                    <ArrowUpRight className="h-4 w-4 text-amber-600" />
+                    Total Sales
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-display font-bold text-amber-600">
+                    ↗{totalSales}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="sm:col-span-3">
+                <CardHeader className="pb-2">
+                  <CardDescription className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
-                    Net Change
+                    Net Change (Births − Deaths − Sales)
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -122,12 +136,17 @@ const EventLogging = () => {
                               <span className="text-red-600 font-medium">
                                 -{record.deaths} deaths
                               </span>
+                              {record.sales > 0 && (
+                                <span className="text-amber-600 font-medium">
+                                  ↗{record.sales} sales
+                                </span>
+                              )}
                             </div>
                           </div>
                           <Badge 
-                            variant={record.births - record.deaths >= 0 ? "default" : "destructive"}
+                            variant={record.births - record.deaths - record.sales >= 0 ? "default" : "destructive"}
                           >
-                            Net: {record.births - record.deaths >= 0 ? '+' : ''}{record.births - record.deaths}
+                            Net: {record.births - record.deaths - record.sales >= 0 ? '+' : ''}{record.births - record.deaths - record.sales}
                           </Badge>
                         </div>
                       ))}

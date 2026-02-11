@@ -13,6 +13,23 @@ export interface ActualRecord {
   year: number;
   births: number;
   deaths: number;
+  sales: number;
+}
+
+// Calculate Mean Absolute Error
+export function calculateMAE(projections: HerdData[]): number | null {
+  const pairs = projections.filter(p => p.actualTotal !== undefined && p.projectedTotal !== undefined);
+  if (pairs.length === 0) return null;
+  const sum = pairs.reduce((acc, p) => acc + Math.abs(p.projectedTotal! - p.actualTotal!), 0);
+  return sum / pairs.length;
+}
+
+// Calculate Mean Absolute Percentage Error
+export function calculateMAPE(projections: HerdData[]): number | null {
+  const pairs = projections.filter(p => p.actualTotal !== undefined && p.actualTotal! > 0);
+  if (pairs.length === 0) return null;
+  const sum = pairs.reduce((acc, p) => acc + Math.abs(p.projectedTotal! - p.actualTotal!) / p.actualTotal!, 0);
+  return (sum / pairs.length) * 100;
 }
 
 // Fibonacci-inspired growth model for cattle
@@ -85,7 +102,7 @@ export function calculateWithActuals(
     const actual = actuals.find(a => a.year === projection.year);
     
     if (actual && index > 0) {
-      runningTotal = runningTotal + actual.births - actual.deaths;
+      runningTotal = runningTotal + actual.births - actual.deaths - actual.sales;
     }
     
     return {

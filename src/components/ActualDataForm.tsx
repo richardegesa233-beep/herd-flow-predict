@@ -19,12 +19,14 @@ export function ActualDataForm({ maxYear, onAdd, records, onRemove }: ActualData
   const [year, setYear] = useState<number>(1);
   const [births, setBirths] = useState<number>(0);
   const [deaths, setDeaths] = useState<number>(0);
+  const [sales, setSales] = useState<number>(0);
 
   const handleAdd = () => {
     if (year > 0 && year <= maxYear) {
-      onAdd({ year, births, deaths });
+      onAdd({ year, births, deaths, sales });
       setBirths(0);
       setDeaths(0);
+      setSales(0);
     }
   };
 
@@ -40,48 +42,62 @@ export function ActualDataForm({ maxYear, onAdd, records, onRemove }: ActualData
           Record Actual Data
         </CardTitle>
         <CardDescription>
-          Enter actual births and deaths to compare with projections
+          Enter actual births, deaths, and sales to compare with projections
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {availableYears.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div className="space-y-2">
-              <Label>Year</Label>
-              <Select value={year.toString()} onValueChange={(v) => setYear(parseInt(v))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map(y => (
-                    <SelectItem key={y} value={y.toString()}>
-                      Year {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Year</Label>
+                <Select value={year.toString()} onValueChange={(v) => setYear(parseInt(v))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableYears.map(y => (
+                      <SelectItem key={y} value={y.toString()}>
+                        Year {y}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Births</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={births}
+                  onChange={(e) => setBirths(parseInt(e.target.value) || 0)}
+                  placeholder="0"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Births</Label>
-              <Input
-                type="number"
-                min={0}
-                value={births}
-                onChange={(e) => setBirths(parseInt(e.target.value) || 0)}
-                placeholder="0"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Deaths</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={deaths}
+                  onChange={(e) => setDeaths(parseInt(e.target.value) || 0)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Sales/Culls</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={sales}
+                  onChange={(e) => setSales(parseInt(e.target.value) || 0)}
+                  placeholder="0"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Deaths</Label>
-              <Input
-                type="number"
-                min={0}
-                value={deaths}
-                onChange={(e) => setDeaths(parseInt(e.target.value) || 0)}
-                placeholder="0"
-              />
-            </div>
-            <Button onClick={handleAdd} variant="accent">
+            <Button onClick={handleAdd} variant="accent" className="w-full">
               <Plus className="h-4 w-4 mr-1" />
               Add Record
             </Button>
@@ -104,9 +120,10 @@ export function ActualDataForm({ maxYear, onAdd, records, onRemove }: ActualData
                   variant="secondary"
                   className="px-3 py-2 flex items-center gap-2"
                 >
-                  <span className="font-semibold">Year {record.year}:</span>
+                  <span className="font-semibold">Y{record.year}:</span>
                   <span className="text-primary">+{record.births}</span>
                   <span className="text-destructive">-{record.deaths}</span>
+                  {record.sales > 0 && <span className="text-amber-600">↗{record.sales}</span>}
                   <button
                     onClick={() => onRemove(record.year)}
                     className="ml-1 hover:text-destructive transition-colors"

@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/herd-projection", label: "HERD PROJECTION" },
   { href: "/event-logging", label: "EVENT LOGGING" },
   { href: "/comparison-report", label: "COMPARISON REPORT" },
+  { href: "/about", label: "ABOUT" },
 ];
 
 export const Layout = ({ children }: LayoutProps) => {
