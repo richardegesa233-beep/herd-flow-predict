@@ -1,13 +1,15 @@
-import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { ActualDataForm } from "@/components/ActualDataForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ActualRecord } from "@/lib/herdCalculations";
-import { ClipboardList, Plus, History, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react";
+import { ClipboardList, Plus, History, TrendingUp, TrendingDown, ArrowUpRight, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 const EventLogging = () => {
-  const [records, setRecords] = useState<ActualRecord[]>([]);
+  const [records, setRecords, clearRecords] = useLocalStorage<ActualRecord[]>("event-records", []);
 
   const handleAddRecord = (record: ActualRecord) => {
     setRecords(prev => [...prev, record]);
@@ -26,13 +28,26 @@ const EventLogging = () => {
     <Layout>
       <div className="container max-w-7xl mx-auto px-4 py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-            Event Logging
-          </h1>
-          <p className="text-muted-foreground">
-            Record actual births and deaths to track your herd's real performance against projections.
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-foreground mb-2">
+              Event Logging
+            </h1>
+            <p className="text-muted-foreground">
+              Record actual births and deaths to track your herd's real performance against projections.
+            </p>
+          </div>
+          {records.length > 0 && (
+            <Button 
+              onClick={() => { clearRecords(); toast.success("Event records cleared."); }}
+              className="gap-2"
+              variant="ghost"
+              size="sm"
+            >
+              <Trash2 className="h-4 w-4" />
+              Clear All
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

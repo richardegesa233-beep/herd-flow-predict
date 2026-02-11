@@ -6,23 +6,32 @@ import { ProjectionChart } from "@/components/ProjectionChart";
 import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { usePdfExport } from "@/hooks/usePdfExport";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { 
   HerdData, 
   calculateHerdProjection, 
   formatNumber 
 } from "@/lib/herdCalculations";
-import { Beef, TrendingUp, Target, Calendar, Download, Loader2 } from "lucide-react";
+import { Beef, TrendingUp, Target, Calendar, Download, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+type ProjectionConfig = {
+  adults: number;
+  young: number;
+  years: number;
+  birthRate: number;
+  mortalityRate: number;
+};
+
 const HerdProjection = () => {
-  const [projections, setProjections] = useState<HerdData[]>([]);
-  const [config, setConfig] = useState<{
-    adults: number;
-    young: number;
-    years: number;
-    birthRate: number;
-    mortalityRate: number;
-  } | null>(null);
+  const [projections, setProjections] = useLocalStorage<HerdData[]>("herd-projections", []);
+  const [config, setConfig] = useLocalStorage<ProjectionConfig | null>("herd-config", null);
+
+  const handleClearData = () => {
+    setProjections([]);
+    setConfig(null);
+    toast.success("Saved projection data cleared.");
+  };
 
   const { exportToPdf, isExporting } = usePdfExport();
 
@@ -77,19 +86,30 @@ const HerdProjection = () => {
             </p>
           </div>
           {projections.length > 0 && (
-            <Button 
-              onClick={handleExportPdf} 
-              disabled={isExporting}
-              className="gap-2 hover-lift"
-              variant="outline"
-            >
-              {isExporting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              Export PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleClearData} 
+                className="gap-2"
+                variant="ghost"
+                size="sm"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear
+              </Button>
+              <Button 
+                onClick={handleExportPdf} 
+                disabled={isExporting}
+                className="gap-2 hover-lift"
+                variant="outline"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Export PDF
+              </Button>
+            </div>
           )}
         </div>
 
