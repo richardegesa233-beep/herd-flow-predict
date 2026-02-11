@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import HerdProjection from "./pages/HerdProjection";
 import EventLogging from "./pages/EventLogging";
 import ComparisonReport from "./pages/ComparisonReport";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/herd-projection" element={<HerdProjection />} />
           <Route path="/event-logging" element={<EventLogging />} />
           <Route path="/comparison-report" element={<ComparisonReport />} />
+          <Route path="/about" element={<About />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
