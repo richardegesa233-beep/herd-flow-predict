@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { HerdInputForm } from "@/components/HerdInputForm";
 import { ProjectionChart } from "@/components/ProjectionChart";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usePdfExport } from "@/hooks/usePdfExport";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { 
   HerdData, 
   ActualRecord, 
@@ -16,19 +16,21 @@ import {
   calculateMAPE,
   formatNumber 
 } from "@/lib/herdCalculations";
-import { BarChart3, TrendingUp, TrendingDown, Target, AlertTriangle, Download, Loader2, Activity, Percent } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Target, AlertTriangle, Download, Loader2, Activity, Percent, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+type ComparisonConfig = {
+  adults: number;
+  young: number;
+  years: number;
+  birthRate: number;
+  mortalityRate: number;
+};
+
 const ComparisonReport = () => {
-  const [projections, setProjections] = useState<HerdData[]>([]);
-  const [actuals, setActuals] = useState<ActualRecord[]>([]);
-  const [config, setConfig] = useState<{
-    adults: number;
-    young: number;
-    years: number;
-    birthRate: number;
-    mortalityRate: number;
-  } | null>(null);
+  const [projections, setProjections] = useLocalStorage<HerdData[]>("comparison-projections", []);
+  const [actuals, setActuals] = useLocalStorage<ActualRecord[]>("comparison-actuals", []);
+  const [config, setConfig] = useLocalStorage<ComparisonConfig | null>("comparison-config", null);
 
   const { exportToPdf, isExporting } = usePdfExport();
 
@@ -49,6 +51,12 @@ const ComparisonReport = () => {
     setProjections(results);
     setConfig(data);
     setActuals([]);
+  };
+  const handleClearData = () => {
+    setProjections([]);
+    setActuals([]);
+    setConfig(null);
+    toast.success("Comparison data cleared.");
   };
 
   const handleAddActual = (record: ActualRecord) => {
@@ -126,20 +134,33 @@ const ComparisonReport = () => {
               Compare your actual herd performance against Fibonacci-based projections.
             </p>
           </div>
-          {metrics && (
-            <Button 
-              onClick={handleExportPdf} 
-              disabled={isExporting}
-              className="gap-2 hover-lift"
-              variant="outline"
-            >
-              {isExporting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
+          {projections.length > 0 && (
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleClearData} 
+                className="gap-2"
+                variant="ghost"
+                size="sm"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear
+              </Button>
+              {metrics && (
+                <Button 
+                  onClick={handleExportPdf} 
+                  disabled={isExporting}
+                  className="gap-2 hover-lift"
+                  variant="outline"
+                >
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  Export PDF
+                </Button>
               )}
-              Export PDF
-            </Button>
+            </div>
           )}
         </div>
 
