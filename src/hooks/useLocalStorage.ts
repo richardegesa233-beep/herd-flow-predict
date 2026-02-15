@@ -1,9 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 
+function getUserKey(key: string): string {
+  try {
+    const session = window.localStorage.getItem("fhps-session");
+    if (session) {
+      const user = JSON.parse(session);
+      return `fhps-${user.id}-${key}`;
+    }
+  } catch {}
+  return `fhps-guest-${key}`;
+}
+
 export function useLocalStorage<T>(key: string, initialValue: T) {
+  const userKey = getUserKey(key);
+
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
-      const item = window.localStorage.getItem(key);
+      const item = window.localStorage.getItem(userKey);
       return item ? JSON.parse(item) : initialValue;
     } catch {
       return initialValue;
@@ -12,16 +25,16 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(key, JSON.stringify(storedValue));
+      window.localStorage.setItem(userKey, JSON.stringify(storedValue));
     } catch {
       // Storage full or unavailable
     }
-  }, [key, storedValue]);
+  }, [userKey, storedValue]);
 
   const clear = useCallback(() => {
     setStoredValue(initialValue);
-    window.localStorage.removeItem(key);
-  }, [key, initialValue]);
+    window.localStorage.removeItem(userKey);
+  }, [userKey, initialValue]);
 
   return [storedValue, setStoredValue, clear] as const;
 }
