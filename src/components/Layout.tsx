@@ -79,13 +79,19 @@ export const Layout = ({ children }: LayoutProps) => {
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
               <ThemeToggle />
-              {user && (
+              {user ? (
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline text-sm text-muted-foreground">{user.name}</span>
                   <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9 rounded-full" aria-label="Logout">
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </div>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="default" size="sm" className="gap-2">
+                    Sign In
+                  </Button>
+                </Link>
               )}
             </div>
 

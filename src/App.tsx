@@ -39,11 +39,11 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
-              <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
               <Route path="/herd-projection" element={<ProtectedRoute><HerdProjection /></ProtectedRoute>} />
               <Route path="/event-logging" element={<ProtectedRoute><EventLogging /></ProtectedRoute>} />
               <Route path="/comparison-report" element={<ProtectedRoute><ComparisonReport /></ProtectedRoute>} />
-              <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
