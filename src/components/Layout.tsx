@@ -1,8 +1,11 @@
 import { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Search, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,6 +21,14 @@ const navLinks = [
 
 export const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully");
+    navigate("/auth");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,7 +68,7 @@ export const Layout = ({ children }: LayoutProps) => {
               })}
             </nav>
 
-            {/* Search & Theme */}
+            {/* Search, Theme & User */}
             <div className="flex items-center gap-2">
               <div className="hidden md:flex relative">
                 <Input
@@ -68,6 +79,14 @@ export const Layout = ({ children }: LayoutProps) => {
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
               <ThemeToggle />
+              {user && (
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline text-sm text-muted-foreground">{user.name}</span>
+                  <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9 rounded-full" aria-label="Logout">
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Mobile Navigation */}
