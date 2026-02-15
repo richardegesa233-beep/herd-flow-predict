@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface LayoutProps {
   children: ReactNode;
@@ -56,9 +57,9 @@ export const Layout = ({ children }: LayoutProps) => {
               })}
             </nav>
 
-            {/* Search */}
-            <div className="hidden md:flex items-center">
-              <div className="relative">
+            {/* Search & Theme */}
+            <div className="flex items-center gap-2">
+              <div className="hidden md:flex relative">
                 <Input
                   type="text"
                   placeholder="SEARCH"
@@ -66,6 +67,7 @@ export const Layout = ({ children }: LayoutProps) => {
                 />
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
+              <ThemeToggle />
             </div>
 
             {/* Mobile Navigation */}
