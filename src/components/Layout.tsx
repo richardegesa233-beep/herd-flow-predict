@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface LayoutProps {
   children: ReactNode;
@@ -23,11 +33,13 @@ export const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
     logout();
+    setShowLogoutDialog(false);
     toast.success("Logged out successfully");
-    navigate("/auth");
+    navigate("/");
   };
 
   return (
@@ -82,7 +94,7 @@ export const Layout = ({ children }: LayoutProps) => {
               {user ? (
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline text-sm text-muted-foreground">{user.name}</span>
-                  <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9 rounded-full" aria-label="Logout">
+                  <Button variant="ghost" size="icon" onClick={() => setShowLogoutDialog(true)} className="h-9 w-9 rounded-full" aria-label="Logout">
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </div>
@@ -131,6 +143,22 @@ export const Layout = ({ children }: LayoutProps) => {
           </nav>
         </div>
       </header>
+
+      {/* Logout Confirmation */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You'll need to sign in again to access your herd projections and saved data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>Sign Out</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Main Content */}
       <main>{children}</main>

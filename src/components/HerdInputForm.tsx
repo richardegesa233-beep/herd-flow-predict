@@ -14,14 +14,21 @@ interface HerdInputFormProps {
     birthRate: number;
     mortalityRate: number;
   }) => void;
+  initialValues?: {
+    adults: number;
+    young: number;
+    years: number;
+    birthRate: number;
+    mortalityRate: number;
+  } | null;
 }
 
-export function HerdInputForm({ onSubmit }: HerdInputFormProps) {
-  const [adults, setAdults] = useState<number>(50);
-  const [young, setYoung] = useState<number>(20);
-  const [years, setYears] = useState<number>(10);
-  const [birthRate, setBirthRate] = useState<number>(85);
-  const [mortalityRate, setMortalityRate] = useState<number>(5);
+export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
+  const [adults, setAdults] = useState<number>(initialValues?.adults ?? 50);
+  const [young, setYoung] = useState<number>(initialValues?.young ?? 20);
+  const [years, setYears] = useState<number>(initialValues?.years ?? 10);
+  const [birthRate, setBirthRate] = useState<number>(initialValues ? Math.round(initialValues.birthRate * 100) : 85);
+  const [mortalityRate, setMortalityRate] = useState<number>(initialValues ? Math.round(initialValues.mortalityRate * 100) : 5);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
