@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Beef, Baby, Calendar, TrendingUp, Heart, Skull } from "lucide-react";
+import { Beef, Baby, Calendar, TrendingUp, Heart, Skull, Scissors } from "lucide-react";
 
 interface HerdInputFormProps {
   onSubmit: (data: {
@@ -13,6 +13,7 @@ interface HerdInputFormProps {
     years: number;
     birthRate: number;
     mortalityRate: number;
+    cullRate: number;
   }) => void;
   initialValues?: {
     adults: number;
@@ -20,6 +21,7 @@ interface HerdInputFormProps {
     years: number;
     birthRate: number;
     mortalityRate: number;
+    cullRate: number;
   } | null;
 }
 
@@ -29,6 +31,7 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
   const [years, setYears] = useState<number>(initialValues?.years ?? 10);
   const [birthRate, setBirthRate] = useState<number>(initialValues ? Math.round(initialValues.birthRate * 100) : 85);
   const [mortalityRate, setMortalityRate] = useState<number>(initialValues ? Math.round(initialValues.mortalityRate * 100) : 5);
+  const [cullRate, setCullRate] = useState<number>(initialValues ? Math.round(initialValues.cullRate * 100) : 10);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,7 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
       years,
       birthRate: birthRate / 100,
       mortalityRate: mortalityRate / 100,
+      cullRate: cullRate / 100,
     });
   };
 
@@ -145,6 +149,25 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
             />
             <p className="text-xs text-muted-foreground">
               Annual death rate across the entire herd
+            </p>
+          </div>
+
+          {/* Cull / Sales Rate */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <Scissors className="h-4 w-4 text-amber-600" />
+              Cull / Sales Rate: <span className="text-primary font-semibold tabular-nums">{cullRate}%</span>
+            </Label>
+            <Slider
+              value={[cullRate]}
+              onValueChange={(value) => setCullRate(value[0])}
+              min={0}
+              max={25}
+              step={1}
+              className="py-2"
+            />
+            <p className="text-xs text-muted-foreground">
+              Percentage of adults removed annually for sales or culling
             </p>
           </div>
 

@@ -5,6 +5,7 @@ export interface HerdData {
   total: number;
   births: number;
   deaths: number;
+  culled: number;
   projectedTotal?: number;
   actualTotal?: number;
 }
@@ -41,7 +42,8 @@ export function calculateHerdProjection(
   years: number,
   birthRate: number = 0.85, // 85% of adults produce calves
   mortalityRate: number = 0.05, // 5% annual mortality
-  maturationYears: number = 2
+  maturationYears: number = 2,
+  cullRate: number = 0.10 // 10% annual cull/sales rate on adults
 ): HerdData[] {
   const projections: HerdData[] = [];
   
@@ -61,6 +63,9 @@ export function calculateHerdProjection(
     // Calculate deaths (from total herd)
     const deaths = year === 0 ? 0 : Math.round(total * mortalityRate);
     
+    // Calculate culled/sold (from adults only)
+    const culled = year === 0 ? 0 : Math.round(adults * cullRate);
+    
     projections.push({
       year,
       adults: Math.round(adults),
@@ -68,13 +73,14 @@ export function calculateHerdProjection(
       total: Math.round(total),
       births,
       deaths,
+      culled,
       projectedTotal: Math.round(total),
     });
     
     if (year < years) {
       // Mature young cattle (oldest age group becomes adults)
       const maturing = youngByAge[maturationYears - 1] || 0;
-      adults = adults + maturing - Math.round(adults * mortalityRate * 0.3);
+      adults = adults + maturing - Math.round(adults * mortalityRate * 0.3) - Math.round(adults * cullRate);
       
       // Shift ages
       for (let i = maturationYears - 1; i > 0; i--) {
