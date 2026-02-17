@@ -33,6 +33,22 @@ export function calculateMAPE(projections: HerdData[]): number | null {
   return (sum / pairs.length) * 100;
 }
 
+// Calculate Root Mean Square Error
+export function calculateRMSE(projections: HerdData[]): number | null {
+  const pairs = projections.filter(p => p.actualTotal !== undefined && p.projectedTotal !== undefined);
+  if (pairs.length === 0) return null;
+  const sumSq = pairs.reduce((acc, p) => acc + Math.pow(p.projectedTotal! - p.actualTotal!, 2), 0);
+  return Math.sqrt(sumSq / pairs.length);
+}
+
+// Calculate Bias (positive = over-projecting, negative = under-projecting)
+export function calculateBias(projections: HerdData[]): number | null {
+  const pairs = projections.filter(p => p.actualTotal !== undefined && p.projectedTotal !== undefined);
+  if (pairs.length === 0) return null;
+  const sum = pairs.reduce((acc, p) => acc + (p.projectedTotal! - p.actualTotal!), 0);
+  return sum / pairs.length;
+}
+
 // Fibonacci-inspired growth model for cattle
 // Adults produce calves, young mature after 2 years
 // Mortality rate applied annually
