@@ -21,6 +21,7 @@ type ProjectionConfig = {
   years: number;
   birthRate: number;
   mortalityRate: number;
+  cullRate: number;
 };
 
 const HerdProjection = () => {
@@ -41,13 +42,16 @@ const HerdProjection = () => {
     years: number;
     birthRate: number;
     mortalityRate: number;
+    cullRate: number;
   }) => {
     const results = calculateHerdProjection(
       data.adults,
       data.young,
       data.years,
       data.birthRate,
-      data.mortalityRate
+      data.mortalityRate,
+      2,
+      data.cullRate
     );
     setProjections(results);
     setConfig(data);
@@ -58,7 +62,7 @@ const HerdProjection = () => {
       await exportToPdf("projection-report", {
         filename: `herd-projection-${new Date().toISOString().split("T")[0]}.pdf`,
         title: "Herd Growth Projection Report",
-        subtitle: `${config?.years} Year Forecast • Birth Rate: ${((config?.birthRate || 0) * 100).toFixed(0)}% • Mortality: ${((config?.mortalityRate || 0) * 100).toFixed(0)}%`,
+        subtitle: `${config?.years} Year Forecast • Birth Rate: ${((config?.birthRate || 0) * 100).toFixed(0)}% • Mortality: ${((config?.mortalityRate || 0) * 100).toFixed(0)}% • Cull: ${((config?.cullRate || 0) * 100).toFixed(0)}%`,
       });
       toast.success("PDF exported successfully!");
     } catch (error) {

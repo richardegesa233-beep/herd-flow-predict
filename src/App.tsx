@@ -9,7 +9,7 @@ import Home from "./pages/Home";
 import HerdProjection from "./pages/HerdProjection";
 import EventLogging from "./pages/EventLogging";
 import ComparisonReport from "./pages/ComparisonReport";
-import About from "./pages/About";
+
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -40,7 +40,7 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
               <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
+              
               <Route path="/herd-projection" element={<ProtectedRoute><HerdProjection /></ProtectedRoute>} />
               <Route path="/event-logging" element={<ProtectedRoute><EventLogging /></ProtectedRoute>} />
               <Route path="/comparison-report" element={<ProtectedRoute><ComparisonReport /></ProtectedRoute>} />

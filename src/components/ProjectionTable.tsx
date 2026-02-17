@@ -59,6 +59,7 @@ export function ProjectionTable({ data }: ProjectionTableProps) {
                 <TableHead className="font-semibold text-right">Young</TableHead>
                 <TableHead className="font-semibold text-right">Births</TableHead>
                 <TableHead className="font-semibold text-right">Deaths</TableHead>
+                <TableHead className="font-semibold text-right">Culled</TableHead>
                 <TableHead className="font-semibold text-right">Total</TableHead>
                 <TableHead className="font-semibold text-right">Growth</TableHead>
                 {data.some(d => d.actualTotal !== undefined) && (
@@ -88,6 +89,9 @@ export function ProjectionTable({ data }: ProjectionTableProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="text-destructive">-{formatNumber(row.deaths)}</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-amber-600">-{formatNumber(row.culled)}</span>
                   </TableCell>
                   <TableCell className="text-right font-bold text-lg">
                     {formatNumber(row.total)}
