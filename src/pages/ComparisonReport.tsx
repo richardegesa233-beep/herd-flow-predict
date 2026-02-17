@@ -12,9 +12,11 @@ import {
   calculateWithActuals,
   calculateMAE,
   calculateMAPE,
+  calculateRMSE,
+  calculateBias,
   formatNumber 
 } from "@/lib/herdCalculations";
-import { BarChart3, TrendingUp, TrendingDown, Target, AlertTriangle, Download, Loader2, Activity, Percent } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Target, AlertTriangle, Download, Loader2, Activity, Percent, Sigma, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -119,26 +121,29 @@ const ComparisonReport = () => {
                 <ProjectionChart data={projections} />
               </div>
 
-              {/* MAE / MAPE Accuracy Metrics */}
+              {/* Accuracy Metrics */}
               {metrics && (() => {
                 const mae = calculateMAE(projections);
                 const mape = calculateMAPE(projections);
-                return (mae !== null || mape !== null) ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-slide-up stagger-1">
+                const rmse = calculateRMSE(projections);
+                const bias = calculateBias(projections);
+                const hasMetrics = [mae, mape, rmse, bias].some(m => m !== null);
+                return hasMetrics ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up stagger-1">
                     {mae !== null && (
                       <Card className="hover-lift">
                         <CardHeader className="pb-2">
                           <CardDescription className="flex items-center gap-2">
                             <Activity className="h-4 w-4 text-primary" />
-                            Mean Absolute Error (MAE)
+                            MAE
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-3xl font-display font-bold text-primary">
+                          <p className="text-2xl font-display font-bold text-primary">
                             {mae.toFixed(1)}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Average deviation in head count
+                            Avg deviation in head count
                           </p>
                         </CardContent>
                       </Card>
@@ -148,15 +153,51 @@ const ComparisonReport = () => {
                         <CardHeader className="pb-2">
                           <CardDescription className="flex items-center gap-2">
                             <Percent className="h-4 w-4 text-accent" />
-                            Mean Absolute % Error (MAPE)
+                            MAPE
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <p className={`text-3xl font-display font-bold ${mape < 10 ? 'text-green-600' : mape < 25 ? 'text-amber-600' : 'text-destructive'}`}>
+                          <p className={`text-2xl font-display font-bold ${mape < 10 ? 'text-green-600' : mape < 25 ? 'text-amber-600' : 'text-destructive'}`}>
                             {mape.toFixed(1)}%
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {mape < 10 ? 'Excellent accuracy' : mape < 25 ? 'Moderate accuracy' : 'Low accuracy — review parameters'}
+                            {mape < 10 ? 'Excellent accuracy' : mape < 25 ? 'Moderate accuracy' : 'Review parameters'}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {rmse !== null && (
+                      <Card className="hover-lift">
+                        <CardHeader className="pb-2">
+                          <CardDescription className="flex items-center gap-2">
+                            <Sigma className="h-4 w-4 text-primary" />
+                            RMSE
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-2xl font-display font-bold text-primary">
+                            {rmse.toFixed(1)}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Penalises large errors more
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {bias !== null && (
+                      <Card className="hover-lift">
+                        <CardHeader className="pb-2">
+                          <CardDescription className="flex items-center gap-2">
+                            <ArrowUpDown className="h-4 w-4 text-accent" />
+                            Bias
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className={`text-2xl font-display font-bold ${bias > 0 ? 'text-amber-600' : 'text-primary'}`}>
+                            {bias > 0 ? '+' : ''}{bias.toFixed(1)}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {bias > 0 ? 'Over-projecting' : bias < 0 ? 'Under-projecting' : 'No bias'}
                           </p>
                         </CardContent>
                       </Card>
