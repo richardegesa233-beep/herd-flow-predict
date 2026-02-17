@@ -54,7 +54,7 @@ const EventLogging = () => {
           {/* Input Form */}
           <div className="lg:col-span-1">
             <ActualDataForm
-              maxYear={10}
+              maxYear={20}
               onAdd={handleAddRecord}
               records={records}
               onRemove={handleRemoveRecord}

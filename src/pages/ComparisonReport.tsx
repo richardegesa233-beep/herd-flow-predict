@@ -25,6 +25,7 @@ type ProjectionConfig = {
   years: number;
   birthRate: number;
   mortalityRate: number;
+  cullRate: number;
 };
 
 const ComparisonReport = () => {
