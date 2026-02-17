@@ -80,15 +80,20 @@ export function calculateHerdProjection(
     if (year < years) {
       // Mature young cattle (oldest age group becomes adults)
       const maturing = youngByAge[maturationYears - 1] || 0;
-      adults = adults + maturing - Math.round(adults * mortalityRate * 0.3) - Math.round(adults * cullRate);
       
-      // Shift ages
+      // Apply mortality uniformly to adults, then subtract sales/cull
+      const adultDeaths = Math.round(adults * mortalityRate);
+      const sold = Math.round(adults * cullRate);
+      adults = adults + maturing - adultDeaths - sold;
+      
+      // Shift ages and apply mortality uniformly to young
       for (let i = maturationYears - 1; i > 0; i--) {
-        youngByAge[i] = youngByAge[i - 1] * (1 - mortalityRate * 0.7);
+        const youngDeaths = Math.round(youngByAge[i - 1] * mortalityRate);
+        youngByAge[i] = youngByAge[i - 1] - youngDeaths;
       }
       
       // New births become youngest
-      youngByAge[0] = births;
+      youngByAge[0] = Math.round(adults * birthRate);
       
       // Calculate total young
       totalYoung = youngByAge.reduce((sum, count) => sum + count, 0);
