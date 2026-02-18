@@ -97,94 +97,21 @@ function FullChart({ data, hasActuals }: { data: any[]; hasActuals: boolean }) {
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.5} />
-        <XAxis
-          dataKey="year"
-          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13 }}
-          tickLine={false}
-          axisLine={{ stroke: 'hsl(var(--border))' }}
-        />
-        <YAxis
-          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13 }}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={(value) => value.toLocaleString()}
-          width={65}
-        />
+        <XAxis dataKey="year" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13 }} tickLine={false} axisLine={{ stroke: 'hsl(var(--border))' }} />
+        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13 }} tickLine={false} axisLine={false} tickFormatter={(value) => value.toLocaleString()} width={65} />
         <Tooltip content={<DetailedTooltip />} />
-        <Legend
-          wrapperStyle={{ paddingTop: '20px', fontSize: '13px' }}
-          iconType="circle"
-          iconSize={10}
-        />
-        <ReferenceLine
-          y={avgTotal}
-          stroke="hsl(var(--muted-foreground))"
-          strokeDasharray="8 4"
-          strokeOpacity={0.4}
-          label={{
-            value: `Avg: ${Math.round(avgTotal).toLocaleString()}`,
-            position: "right",
-            fill: "hsl(var(--muted-foreground))",
-            fontSize: 11,
-          }}
-        />
-        <Area
-          type="monotone"
-          dataKey="Adults"
-          stackId="1"
-          stroke="hsl(var(--chart-primary))"
-          strokeWidth={2.5}
-          fill="url(#gradAdultsFull)"
-          name="Adult Cattle"
-          animationDuration={1200}
-        />
-        <Area
-          type="monotone"
-          dataKey="Young"
-          stackId="1"
-          stroke="hsl(var(--chart-secondary))"
-          strokeWidth={2.5}
-          fill="url(#gradYoungFull)"
-          name="Young Cattle"
-          animationDuration={1400}
-        />
-        <Bar
-          dataKey="Births"
-          fill="hsl(var(--chart-primary))"
-          opacity={0.25}
-          name="Births"
-          animationDuration={1000}
-          barSize={data.length > 15 ? 8 : 14}
-        />
-        <Bar
-          dataKey="Deaths"
-          fill="hsl(var(--destructive))"
-          opacity={0.25}
-          name="Deaths"
-          animationDuration={1000}
-          barSize={data.length > 15 ? 8 : 14}
-        />
+        <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '13px' }} iconType="circle" iconSize={10} />
+        <ReferenceLine y={avgTotal} stroke="hsl(var(--muted-foreground))" strokeDasharray="8 4" strokeOpacity={0.4} label={{ value: `Avg: ${Math.round(avgTotal).toLocaleString()}`, position: "right", fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+        <Area type="monotone" dataKey="Breeding Females" stackId="1" stroke="hsl(var(--chart-primary))" strokeWidth={2.5} fill="url(#gradAdultsFull)" name="Breeding Females (♀)" animationDuration={1200} />
+        <Area type="monotone" dataKey="Female Young" stackId="1" stroke="hsl(var(--chart-secondary))" strokeWidth={2.5} fill="url(#gradYoungFull)" name="Female Young (♀)" animationDuration={1400} />
+        <Area type="monotone" dataKey="Males" stackId="1" stroke="hsl(var(--accent))" strokeWidth={2} fill="hsl(var(--accent) / 0.15)" name="Males (♂)" animationDuration={1500} />
+        <Bar dataKey="Births" fill="hsl(var(--chart-primary))" opacity={0.25} name="Births" animationDuration={1000} barSize={data.length > 15 ? 8 : 14} />
+        <Bar dataKey="Deaths" fill="hsl(var(--destructive))" opacity={0.25} name="Deaths" animationDuration={1000} barSize={data.length > 15 ? 8 : 14} />
         {hasActuals && (
-          <Line
-            type="monotone"
-            dataKey="Actual"
-            stroke="hsl(var(--chart-tertiary))"
-            strokeWidth={3}
-            strokeDasharray="6 4"
-            dot={{ fill: 'hsl(var(--chart-tertiary))', strokeWidth: 2, r: 5, stroke: 'hsl(var(--card))' }}
-            activeDot={{ r: 7, strokeWidth: 3 }}
-            name="Actual Total"
-            animationDuration={1600}
-          />
+          <Line type="monotone" dataKey="Actual" stroke="hsl(var(--chart-tertiary))" strokeWidth={3} strokeDasharray="6 4" dot={{ fill: 'hsl(var(--chart-tertiary))', strokeWidth: 2, r: 5, stroke: 'hsl(var(--card))' }} activeDot={{ r: 7, strokeWidth: 3 }} name="Actual Total" animationDuration={1600} />
         )}
         {data.length > 8 && (
-          <Brush
-            dataKey="year"
-            height={24}
-            stroke="hsl(var(--border))"
-            fill="hsl(var(--muted))"
-            travellerWidth={8}
-          />
+          <Brush dataKey="year" height={24} stroke="hsl(var(--border))" fill="hsl(var(--muted))" travellerWidth={8} />
         )}
       </ComposedChart>
     </ResponsiveContainer>
@@ -201,8 +128,9 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
 
   const chartData = data.map(d => ({
     year: `Year ${d.year}`,
-    Adults: d.adults,
-    Young: d.young,
+    'Breeding Females': d.adults,
+    'Female Young': d.young - (d.males || 0),
+    'Males': d.males || 0,
     Total: d.total,
     Births: d.births,
     Deaths: d.deaths,
@@ -290,23 +218,33 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
                   />
                   <Area
                     type="monotone"
-                    dataKey="Adults"
+                    dataKey="Breeding Females"
                     stackId="1"
                     stroke="hsl(var(--chart-primary))"
                     strokeWidth={2.5}
                     fill="url(#gradAdults)"
-                    name="Adult Cattle"
+                    name="Breeding Females (♀)"
                     animationDuration={1200}
                   />
                   <Area
                     type="monotone"
-                    dataKey="Young"
+                    dataKey="Female Young"
                     stackId="1"
                     stroke="hsl(var(--chart-secondary))"
                     strokeWidth={2.5}
                     fill="url(#gradYoung)"
-                    name="Young Cattle"
+                    name="Female Young (♀)"
                     animationDuration={1400}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="Males"
+                    stackId="1"
+                    stroke="hsl(var(--accent))"
+                    strokeWidth={2}
+                    fill="hsl(var(--accent) / 0.15)"
+                    name="Males (♂)"
+                    animationDuration={1500}
                   />
                   {hasActuals && (
                     <Line
@@ -330,8 +268,9 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="font-semibold">Year</TableHead>
-                    <TableHead className="font-semibold text-right">Adults</TableHead>
+                    <TableHead className="font-semibold text-right">♀ Adults</TableHead>
                     <TableHead className="font-semibold text-right">Young</TableHead>
+                    <TableHead className="font-semibold text-right">♂ Males</TableHead>
                     <TableHead className="font-semibold text-right">Births</TableHead>
                     <TableHead className="font-semibold text-right">Deaths</TableHead>
                     <TableHead className="font-semibold text-right">Total</TableHead>
@@ -351,6 +290,7 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
                       </TableCell>
                       <TableCell className="text-right font-medium">{formatNumber(row.adults)}</TableCell>
                       <TableCell className="text-right font-medium">{formatNumber(row.young)}</TableCell>
+                      <TableCell className="text-right font-medium">{formatNumber(row.males)}</TableCell>
                       <TableCell className="text-right">
                         <span className="text-primary">+{formatNumber(row.births)}</span>
                       </TableCell>

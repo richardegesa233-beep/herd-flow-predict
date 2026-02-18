@@ -55,11 +55,13 @@ export function ProjectionTable({ data }: ProjectionTableProps) {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="font-semibold">Year</TableHead>
-                <TableHead className="font-semibold text-right">Adults</TableHead>
+                <TableHead className="font-semibold text-right">♀ Adults</TableHead>
                 <TableHead className="font-semibold text-right">Young</TableHead>
-                <TableHead className="font-semibold text-right">Births</TableHead>
+                <TableHead className="font-semibold text-right">♀ Births</TableHead>
+                <TableHead className="font-semibold text-right">♂ Births</TableHead>
                 <TableHead className="font-semibold text-right">Deaths</TableHead>
                 <TableHead className="font-semibold text-right">Culled</TableHead>
+                <TableHead className="font-semibold text-right">♂ Sold</TableHead>
                 <TableHead className="font-semibold text-right">Total</TableHead>
                 <TableHead className="font-semibold text-right">Growth</TableHead>
                 {data.some(d => d.actualTotal !== undefined) && (
@@ -85,13 +87,19 @@ export function ProjectionTable({ data }: ProjectionTableProps) {
                     {formatNumber(row.young)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="text-primary">+{formatNumber(row.births)}</span>
+                    <span className="text-primary">+{formatNumber(row.femaleBirths)}</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-blue-500">+{formatNumber(row.maleBirths)}</span>
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="text-destructive">-{formatNumber(row.deaths)}</span>
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="text-amber-600">-{formatNumber(row.culled)}</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-blue-400">-{formatNumber(row.malesSold)}</span>
                   </TableCell>
                   <TableCell className="text-right font-bold text-lg">
                     {formatNumber(row.total)}
