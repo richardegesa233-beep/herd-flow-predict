@@ -1,5 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { ProjectionChart } from "@/components/ProjectionChart";
+import { VarianceTable } from "@/components/VarianceTable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,6 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { 
   HerdData, 
   ActualRecord, 
-  calculateHerdProjection, 
   calculateWithActuals,
   calculateMAE,
   calculateMAPE,
@@ -38,7 +38,6 @@ const ComparisonReport = () => {
 
   const { exportToPdf, isExporting } = usePdfExport();
 
-  // Merge projections with event logging actuals
   const projections = useMemo(() => {
     if (!baseProjections.length || !eventRecords.length) return baseProjections;
     return calculateWithActuals(baseProjections, eventRecords);
@@ -57,7 +56,6 @@ const ComparisonReport = () => {
     }
   };
 
-  // Calculate variance metrics
   const metrics = useMemo(() => {
     if (!projections.length) return null;
     
@@ -84,7 +82,7 @@ const ComparisonReport = () => {
 
   return (
     <Layout>
-      <div className="container max-w-5xl mx-auto px-4 py-8">
+      <div className="container max-w-6xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-slide-up">
           <div>
@@ -95,7 +93,7 @@ const ComparisonReport = () => {
               Projected vs actual herd performance using your event log data.
             </p>
           </div>
-          {metrics && (
+          {hasProjections && (
             <Button 
               onClick={handleExportPdf} 
               disabled={isExporting}
@@ -114,7 +112,7 @@ const ComparisonReport = () => {
 
         {/* Content */}
         <div className="space-y-6" id="comparison-report">
-          {hasProjections && hasActuals ? (
+          {hasProjections ? (
             <>
               {/* Chart */}
               <div className="animate-slide-in-right">
@@ -157,7 +155,7 @@ const ComparisonReport = () => {
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <p className={`text-2xl font-display font-bold ${mape < 10 ? 'text-green-600' : mape < 25 ? 'text-amber-600' : 'text-destructive'}`}>
+                          <p className={`text-2xl font-display font-bold ${mape < 10 ? 'text-primary' : mape < 25 ? 'text-amber-600' : 'text-destructive'}`}>
                             {mape.toFixed(1)}%
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -206,20 +204,19 @@ const ComparisonReport = () => {
                 ) : null;
               })()}
 
-              {/* Variance Analysis */}
-              {metrics ? (
+              {/* Overall Variance Summary */}
+              {metrics && (
                 <Card className="animate-slide-up stagger-2 hover-lift">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <BarChart3 className="h-5 w-5" />
-                      Variance Analysis
+                      Variance Summary
                     </CardTitle>
                     <CardDescription>
-                      Comparing actual performance to projections
+                      Overall performance comparison
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Overall Variance */}
+                  <CardContent>
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-center gap-3">
                         {metrics.isPositive ? (
@@ -234,7 +231,7 @@ const ComparisonReport = () => {
                         <div>
                           <p className="font-medium">Average Variance</p>
                           <p className="text-sm text-muted-foreground">
-                            Across all recorded years
+                            Across {metrics.variances.length} recorded year{metrics.variances.length !== 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
@@ -245,51 +242,14 @@ const ComparisonReport = () => {
                         {metrics.isPositive ? '+' : ''}{metrics.avgVariance}%
                       </Badge>
                     </div>
-
-                    {/* Year-by-Year Breakdown */}
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Year-by-Year Comparison
-                      </p>
-                      {metrics.variances.map((v, index) => (
-                        <div
-                          key={v.year}
-                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors animate-slide-up"
-                          style={{ animationDelay: `${index * 0.1}s` }}
-                        >
-                          <div className="flex items-center gap-4">
-                            <Badge variant="outline">Year {v.year}</Badge>
-                            <div className="text-sm">
-                              <span className="text-muted-foreground">Projected: </span>
-                              <span className="font-medium">{formatNumber(v.projected)}</span>
-                              <span className="mx-2 text-muted-foreground">→</span>
-                              <span className="text-muted-foreground">Actual: </span>
-                              <span className="font-medium">{formatNumber(v.actual)}</span>
-                            </div>
-                          </div>
-                          <span className={`font-semibold ${v.variance >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                            {v.variance >= 0 ? '+' : ''}{v.variancePercent}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="animate-fade-in">
-                  <CardContent className="py-12">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="animate-pulse-soft">
-                        <AlertTriangle className="h-12 w-12 text-muted-foreground/40 mb-4" />
-                      </div>
-                      <h3 className="font-semibold text-lg mb-2">No Matching Data</h3>
-                      <p className="text-muted-foreground max-w-sm">
-                        Your event log years don't overlap with projection years yet. Add matching year records in Event Logging.
-                      </p>
-                    </div>
                   </CardContent>
                 </Card>
               )}
+
+              {/* Detailed All-Years Variance Table */}
+              <div className="animate-slide-up stagger-3">
+                <VarianceTable data={projections} />
+              </div>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center min-h-[400px] bg-muted/30 rounded-xl border-2 border-dashed border-muted-foreground/20 p-8 animate-fade-in">
