@@ -2,10 +2,15 @@ export interface HerdData {
   year: number;
   adults: number;
   young: number;
+  males: number;
+  females: number;
   total: number;
   births: number;
+  femaleBirths: number;
+  maleBirths: number;
   deaths: number;
   culled: number;
+  malesSold: number;
   projectedTotal?: number;
   actualTotal?: number;
 }
@@ -59,22 +64,34 @@ export function calculateHerdProjection(
   birthRate: number = 0.85, // 85% of adults produce calves
   mortalityRate: number = 0.05, // 5% annual mortality
   maturationYears: number = 2,
-  cullRate: number = 0.10 // 10% annual cull/sales rate on adults
+  cullRate: number = 0.10, // 10% annual cull/sales rate on adults
+  femaleBirthRatio: number = 0.50 // 50% of births are female
 ): HerdData[] {
   const projections: HerdData[] = [];
   
-  // Track young by age for maturation
-  let youngByAge: number[] = new Array(maturationYears).fill(0);
-  youngByAge[0] = initialYoung;
+  // Track female young by age for maturation (only females become breeding adults)
+  let femaleYoungByAge: number[] = new Array(maturationYears).fill(0);
+  // Track male young by age (sold when mature)
+  let maleYoungByAge: number[] = new Array(maturationYears).fill(0);
   
-  let adults = initialAdults;
-  let totalYoung = initialYoung;
+  // Assume initial young split 50/50
+  femaleYoungByAge[0] = Math.round(initialYoung * femaleBirthRatio);
+  maleYoungByAge[0] = initialYoung - femaleYoungByAge[0];
+  
+  let adults = initialAdults; // breeding females
+  let totalFemaleYoung = femaleYoungByAge.reduce((s, c) => s + c, 0);
+  let totalMaleYoung = maleYoungByAge.reduce((s, c) => s + c, 0);
+  let totalYoung = totalFemaleYoung + totalMaleYoung;
   
   for (let year = 0; year <= years; year++) {
-    const total = adults + totalYoung;
+    const totalMales = totalMaleYoung;
+    const totalFemales = adults + totalFemaleYoung;
+    const total = totalFemales + totalMales;
     
-    // Calculate births (only adults can give birth)
+    // Calculate births (only adult females can give birth)
     const births = year === 0 ? 0 : Math.round(adults * birthRate);
+    const femaleBirths = year === 0 ? 0 : Math.round(births * femaleBirthRatio);
+    const maleBirths = year === 0 ? 0 : births - femaleBirths;
     
     // Calculate deaths (from total herd)
     const deaths = year === 0 ? 0 : Math.round(total * mortalityRate);
@@ -82,37 +99,56 @@ export function calculateHerdProjection(
     // Calculate culled/sold (from adults only)
     const culled = year === 0 ? 0 : Math.round(adults * cullRate);
     
+    // Males sold when they mature
+    const malesSold = year === 0 ? 0 : (maleYoungByAge[maturationYears - 1] || 0);
+    
     projections.push({
       year,
       adults: Math.round(adults),
       young: Math.round(totalYoung),
+      males: Math.round(totalMales),
+      females: Math.round(totalFemales),
       total: Math.round(total),
       births,
+      femaleBirths,
+      maleBirths,
       deaths,
       culled,
+      malesSold,
       projectedTotal: Math.round(total),
     });
     
     if (year < years) {
-      // Mature young cattle (oldest age group becomes adults)
-      const maturing = youngByAge[maturationYears - 1] || 0;
+      // Mature female young → become breeding adults
+      const femaleMaturing = femaleYoungByAge[maturationYears - 1] || 0;
       
-      // Apply mortality uniformly to adults, then subtract sales/cull
+      // Apply mortality to adults, then subtract sales/cull
       const adultDeaths = Math.round(adults * mortalityRate);
       const sold = Math.round(adults * cullRate);
-      adults = adults + maturing - adultDeaths - sold;
+      adults = adults + femaleMaturing - adultDeaths - sold;
       
-      // Shift ages and apply mortality uniformly to young
+      // Shift female young ages and apply mortality
       for (let i = maturationYears - 1; i > 0; i--) {
-        const youngDeaths = Math.round(youngByAge[i - 1] * mortalityRate);
-        youngByAge[i] = youngByAge[i - 1] - youngDeaths;
+        const youngDeaths = Math.round(femaleYoungByAge[i - 1] * mortalityRate);
+        femaleYoungByAge[i] = femaleYoungByAge[i - 1] - youngDeaths;
       }
       
-      // New births become youngest
-      youngByAge[0] = Math.round(adults * birthRate);
+      // Shift male young ages and apply mortality (males sold at maturation)
+      for (let i = maturationYears - 1; i > 0; i--) {
+        const youngDeaths = Math.round(maleYoungByAge[i - 1] * mortalityRate);
+        maleYoungByAge[i] = maleYoungByAge[i - 1] - youngDeaths;
+      }
       
-      // Calculate total young
-      totalYoung = youngByAge.reduce((sum, count) => sum + count, 0);
+      // New births
+      const newBirths = Math.round(adults * birthRate);
+      const newFemaleBirths = Math.round(newBirths * femaleBirthRatio);
+      femaleYoungByAge[0] = newFemaleBirths;
+      maleYoungByAge[0] = newBirths - newFemaleBirths;
+      
+      // Calculate totals
+      totalFemaleYoung = femaleYoungByAge.reduce((sum, count) => sum + count, 0);
+      totalMaleYoung = maleYoungByAge.reduce((sum, count) => sum + count, 0);
+      totalYoung = totalFemaleYoung + totalMaleYoung;
     }
   }
   
