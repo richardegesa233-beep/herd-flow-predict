@@ -29,12 +29,22 @@ export function usePdfExport() {
         throw new Error("Element not found");
       }
 
+      // Temporarily expand element for better capture
+      const origMaxHeight = element.style.maxHeight;
+      const origOverflow = element.style.overflow;
+      element.style.maxHeight = "none";
+      element.style.overflow = "visible";
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#faf8f5",
+        windowWidth: 1200,
       });
+
+      element.style.maxHeight = origMaxHeight;
+      element.style.overflow = origOverflow;
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
@@ -48,12 +58,12 @@ export function usePdfExport() {
       const margin = 15;
       const contentWidth = pageWidth - (margin * 2);
 
-      // Header
-      pdf.setFillColor(59, 102, 67); // Primary green
-      pdf.rect(0, 0, pageWidth, 35, "F");
+      // ─── Header ───
+      pdf.setFillColor(59, 102, 67);
+      pdf.rect(0, 0, pageWidth, 38, "F");
       
       pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(22);
+      pdf.setFontSize(24);
       pdf.setFont("helvetica", "bold");
       pdf.text(title, margin, 18);
       
@@ -61,34 +71,31 @@ export function usePdfExport() {
       pdf.setFont("helvetica", "normal");
       pdf.text(subtitle, margin, 28);
       
-      // Date
-      pdf.text(
-        `Generated: ${new Date().toLocaleDateString("en-US", { 
-          year: "numeric", 
-          month: "long", 
-          day: "numeric" 
-        })}`,
-        pageWidth - margin,
-        28,
-        { align: "right" }
-      );
+      const dateStr = new Date().toLocaleDateString("en-US", { 
+        year: "numeric", month: "long", day: "numeric" 
+      });
+      pdf.text(`Generated: ${dateStr}`, pageWidth - margin, 28, { align: "right" });
 
-      // Content
+      // Thin accent bar under header
+      pdf.setFillColor(200, 180, 120);
+      pdf.rect(0, 38, pageWidth, 1.5, "F");
+
+      // ─── Content ───
       const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const startY = 45;
+      const startY = 48;
 
-      // Handle multi-page content
       let remainingHeight = imgHeight;
       let currentY = startY;
       let sourceY = 0;
+      let pageNum = 1;
 
       while (remainingHeight > 0) {
-        const availableHeight = pageHeight - currentY - margin;
+        const footerSpace = 16;
+        const availableHeight = pageHeight - currentY - footerSpace;
         const drawHeight = Math.min(remainingHeight, availableHeight);
         const sourceHeight = (drawHeight / imgHeight) * canvas.height;
 
-        // Create a cropped canvas for this page
         const croppedCanvas = document.createElement("canvas");
         croppedCanvas.width = canvas.width;
         croppedCanvas.height = sourceHeight;
@@ -107,24 +114,33 @@ export function usePdfExport() {
           pdf.addImage(croppedImgData, "PNG", margin, currentY, imgWidth, drawHeight);
         }
 
+        // ─── Footer on every page ───
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+        
+        pdf.setTextColor(140, 140, 140);
+        pdf.setFontSize(8);
+        pdf.text(
+          "FHPS • Fibonacci-Based Herd Projection System",
+          margin,
+          pageHeight - 8
+        );
+        pdf.text(
+          `Page ${pageNum}`,
+          pageWidth - margin,
+          pageHeight - 8,
+          { align: "right" }
+        );
+
         remainingHeight -= drawHeight;
         sourceY += sourceHeight;
 
         if (remainingHeight > 0) {
           pdf.addPage();
+          pageNum++;
           currentY = margin;
         }
       }
-
-      // Footer on last page
-      pdf.setTextColor(120, 120, 120);
-      pdf.setFontSize(8);
-      pdf.text(
-        "FHPS • Fibonacci-Based Herd Projection System",
-        pageWidth / 2,
-        pageHeight - 10,
-        { align: "center" }
-      );
 
       pdf.save(filename);
     } catch (error) {
