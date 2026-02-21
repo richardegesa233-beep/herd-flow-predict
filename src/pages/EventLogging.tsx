@@ -3,20 +3,47 @@ import { ActualDataForm } from "@/components/ActualDataForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ActualRecord } from "@/lib/herdCalculations";
-import { ClipboardList, Plus, History, TrendingUp, TrendingDown, ArrowUpRight, Trash2 } from "lucide-react";
+import { ClipboardList, Plus, History, TrendingUp, TrendingDown, ArrowUpRight, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const EventLogging = () => {
   const [records, setRecords, clearRecords] = useLocalStorage<ActualRecord[]>("event-records", []);
+  const [editingYear, setEditingYear] = useState<number | null>(null);
+  const [editValues, setEditValues] = useState({ births: 0, deaths: 0, sales: 0 });
 
   const handleAddRecord = (record: ActualRecord) => {
     setRecords(prev => [...prev, record]);
+    toast.success(`Year ${record.year} recorded.`);
   };
 
   const handleRemoveRecord = (year: number) => {
     setRecords(prev => prev.filter(r => r.year !== year));
+    toast.success(`Year ${year} removed.`);
+  };
+
+  const handleUpdateRecord = (record: ActualRecord) => {
+    setRecords(prev => prev.map(r => r.year === record.year ? record : r));
+    toast.success(`Year ${record.year} updated.`);
+  };
+
+  const startEdit = (record: ActualRecord) => {
+    setEditingYear(record.year);
+    setEditValues({ births: record.births, deaths: record.deaths, sales: record.sales });
+  };
+
+  const confirmEdit = () => {
+    if (editingYear !== null) {
+      handleUpdateRecord({ year: editingYear, ...editValues });
+      setEditingYear(null);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingYear(null);
   };
 
   const totalBirths = records.reduce((sum, r) => sum + r.births, 0);
@@ -58,6 +85,7 @@ const EventLogging = () => {
               onAdd={handleAddRecord}
               records={records}
               onRemove={handleRemoveRecord}
+              onUpdate={handleUpdateRecord}
             />
           </div>
 
@@ -127,7 +155,7 @@ const EventLogging = () => {
                   Event History
                 </CardTitle>
                 <CardDescription>
-                  All recorded farm events sorted by year
+                  All recorded farm events sorted by year — click the pencil to edit
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -140,29 +168,89 @@ const EventLogging = () => {
                           key={record.year}
                           className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
                         >
-                          <div className="flex items-center gap-4">
-                            <Badge variant="outline" className="font-mono">
-                              Year {record.year}
-                            </Badge>
-                            <div className="flex gap-4 text-sm">
-                              <span className="text-green-600 font-medium">
-                                +{record.births} births
-                              </span>
-                              <span className="text-red-600 font-medium">
-                                -{record.deaths} deaths
-                              </span>
-                              {record.sales > 0 && (
-                                <span className="text-amber-600 font-medium">
-                                  ↗{record.sales} sales
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <Badge 
-                            variant={record.births - record.deaths - record.sales >= 0 ? "default" : "destructive"}
-                          >
-                            Net: {record.births - record.deaths - record.sales >= 0 ? '+' : ''}{record.births - record.deaths - record.sales}
-                          </Badge>
+                          {editingYear === record.year ? (
+                            <>
+                              <div className="flex items-center gap-3 flex-1">
+                                <Badge variant="outline" className="font-mono">
+                                  Year {record.year}
+                                </Badge>
+                                <div className="flex gap-2 items-center text-sm">
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-green-600 text-xs">Births:</span>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      value={editValues.births}
+                                      onChange={(e) => setEditValues(v => ({ ...v, births: parseInt(e.target.value) || 0 }))}
+                                      className="h-7 w-16 px-1.5 text-xs"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-red-600 text-xs">Deaths:</span>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      value={editValues.deaths}
+                                      onChange={(e) => setEditValues(v => ({ ...v, deaths: parseInt(e.target.value) || 0 }))}
+                                      className="h-7 w-16 px-1.5 text-xs"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-amber-600 text-xs">Sales:</span>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      value={editValues.sales}
+                                      onChange={(e) => setEditValues(v => ({ ...v, sales: parseInt(e.target.value) || 0 }))}
+                                      className="h-7 w-16 px-1.5 text-xs"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={confirmEdit}>
+                                  <Check className="h-4 w-4 text-green-600" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={cancelEdit}>
+                                  <X className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-4">
+                                <Badge variant="outline" className="font-mono">
+                                  Year {record.year}
+                                </Badge>
+                                <div className="flex gap-4 text-sm">
+                                  <span className="text-green-600 font-medium">
+                                    +{record.births} births
+                                  </span>
+                                  <span className="text-red-600 font-medium">
+                                    -{record.deaths} deaths
+                                  </span>
+                                  {record.sales > 0 && (
+                                    <span className="text-amber-600 font-medium">
+                                      ↗{record.sales} sales
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant={record.births - record.deaths - record.sales >= 0 ? "default" : "destructive"}
+                                >
+                                  Net: {record.births - record.deaths - record.sales >= 0 ? '+' : ''}{record.births - record.deaths - record.sales}
+                                </Badge>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(record)}>
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 hover:text-destructive" onClick={() => handleRemoveRecord(record.year)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))}
                   </div>
