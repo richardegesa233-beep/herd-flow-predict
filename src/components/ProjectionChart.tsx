@@ -104,7 +104,7 @@ function FullChart({ data, hasActuals }: { data: any[]; hasActuals: boolean }) {
         <ReferenceLine y={avgTotal} stroke="hsl(var(--muted-foreground))" strokeDasharray="8 4" strokeOpacity={0.4} label={{ value: `Avg: ${Math.round(avgTotal).toLocaleString()}`, position: "right", fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
         <Area type="monotone" dataKey="Breeding Females" stackId="1" stroke="hsl(var(--chart-primary))" strokeWidth={2.5} fill="url(#gradAdultsFull)" name="Breeding Females (♀)" animationDuration={1200} />
         <Area type="monotone" dataKey="Female Young" stackId="1" stroke="hsl(var(--chart-secondary))" strokeWidth={2.5} fill="url(#gradYoungFull)" name="Female Young (♀)" animationDuration={1400} />
-        <Area type="monotone" dataKey="Males" stackId="1" stroke="hsl(var(--accent))" strokeWidth={2} fill="hsl(var(--accent) / 0.15)" name="Males (♂)" animationDuration={1500} />
+        <Area type="monotone" dataKey="Males" stackId="1" stroke="hsl(var(--chart-males))" strokeWidth={2} fill="hsl(var(--chart-males) / 0.15)" name="Males (♂)" animationDuration={1500} />
         <Bar dataKey="Births" fill="hsl(var(--chart-primary))" opacity={0.25} name="Births" animationDuration={1000} barSize={data.length > 15 ? 8 : 14} />
         <Bar dataKey="Deaths" fill="hsl(var(--destructive))" opacity={0.25} name="Deaths" animationDuration={1000} barSize={data.length > 15 ? 8 : 14} />
         {hasActuals && (
@@ -236,13 +236,13 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
                     name="Female Young (♀)"
                     animationDuration={1400}
                   />
-                  <Area
+                   <Area
                     type="monotone"
                     dataKey="Males"
                     stackId="1"
-                    stroke="hsl(var(--accent))"
+                    stroke="hsl(var(--chart-males))"
                     strokeWidth={2}
-                    fill="hsl(var(--accent) / 0.15)"
+                    fill="hsl(var(--chart-males) / 0.15)"
                     name="Males (♂)"
                     animationDuration={1500}
                   />
