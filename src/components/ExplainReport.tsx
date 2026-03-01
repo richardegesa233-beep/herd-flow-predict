@@ -91,6 +91,31 @@ function buildExplanation(
     });
   }
 
+  // ─── Year by Year ───
+  if (projections.length > 1) {
+    const yearLines: string[] = [];
+    for (let i = 1; i < projections.length; i++) {
+      const prev = projections[i - 1];
+      const curr = projections[i];
+      const change = curr.total - prev.total;
+      const pct = prev.total > 0 ? ((change / prev.total) * 100).toFixed(1) : "0";
+      const direction = change >= 0 ? "▲" : "▼";
+      const births = curr.births ?? 0;
+      const deaths = curr.deaths ?? 0;
+      const sales = (curr.culled ?? 0) + (curr.malesSold ?? 0);
+      const actualNote = curr.actualTotal !== undefined
+        ? ` | Actual: ${curr.actualTotal.toLocaleString()} (diff: ${(curr.total - curr.actualTotal) > 0 ? "+" : ""}${(curr.total - curr.actualTotal).toLocaleString()})`
+        : "";
+      yearLines.push(
+        `Year ${curr.year}: ${curr.total.toLocaleString()} total ${direction} ${Math.abs(change).toLocaleString()} (${pct}%) — Births: ${births.toLocaleString()}, Deaths: ${deaths.toLocaleString()}, Sales: ${sales.toLocaleString()}${actualNote}`
+      );
+    }
+    sections.push({
+      title: "📅 Year-by-Year Breakdown",
+      content: yearLines,
+    });
+  }
+
   // ─── Comparison-specific ───
   if (mode === "comparison" && projections.some(p => p.actualTotal !== undefined)) {
     const mae = calculateMAE(projections);
