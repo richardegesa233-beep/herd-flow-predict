@@ -17,7 +17,8 @@ import { toast } from "sonner";
 import { ExplainReport } from "@/components/ExplainReport";
 
 type ProjectionConfig = {
-  adults: number;
+  femaleAdults: number;
+  maleAdults: number;
   young: number;
   years: number;
   birthRate: number;
@@ -38,7 +39,8 @@ const HerdProjection = () => {
   const { exportToPdf, isExporting } = usePdfExport();
 
   const handleGenerateProjection = (data: {
-    adults: number;
+    femaleAdults: number;
+    maleAdults: number;
     young: number;
     years: number;
     birthRate: number;
@@ -46,7 +48,7 @@ const HerdProjection = () => {
     cullRate: number;
   }) => {
     const results = calculateHerdProjection(
-      data.adults,
+      data.femaleAdults,
       data.young,
       data.years,
       data.birthRate,

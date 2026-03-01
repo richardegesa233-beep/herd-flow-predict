@@ -8,7 +8,8 @@ import { Beef, Baby, Calendar, TrendingUp, Heart, Skull, Scissors } from "lucide
 
 interface HerdInputFormProps {
   onSubmit: (data: {
-    adults: number;
+    femaleAdults: number;
+    maleAdults: number;
     young: number;
     years: number;
     birthRate: number;
@@ -16,7 +17,9 @@ interface HerdInputFormProps {
     cullRate: number;
   }) => void;
   initialValues?: {
-    adults: number;
+    femaleAdults?: number;
+    maleAdults?: number;
+    adults?: number;
     young: number;
     years: number;
     birthRate: number;
@@ -26,7 +29,8 @@ interface HerdInputFormProps {
 }
 
 export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
-  const [adults, setAdults] = useState<number>(initialValues?.adults ?? 50);
+  const [femaleAdults, setFemaleAdults] = useState<number>(initialValues?.femaleAdults ?? initialValues?.adults ?? 50);
+  const [maleAdults, setMaleAdults] = useState<number>(initialValues?.maleAdults ?? 5);
   const [young, setYoung] = useState<number>(initialValues?.young ?? 20);
   const [years, setYears] = useState<number>(initialValues?.years ?? 10);
   const [birthRate, setBirthRate] = useState<number>(initialValues ? Math.round(initialValues.birthRate * 100) : 85);
@@ -36,7 +40,8 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      adults,
+      femaleAdults,
+      maleAdults,
       young,
       years,
       birthRate: birthRate / 100,
@@ -59,25 +64,42 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Adult Cattle */}
+            {/* Female Adults */}
             <div className="space-y-2 group">
-              <Label htmlFor="adults" className="flex items-center gap-2 text-sm font-medium">
+              <Label htmlFor="femaleAdults" className="flex items-center gap-2 text-sm font-medium">
                 <Beef className="h-4 w-4 text-primary transition-transform group-focus-within:scale-110" />
-                Adult Cattle (breeding age)
+                Adult Females (breeding cows)
               </Label>
               <Input
-                id="adults"
+                id="femaleAdults"
                 type="number"
                 min={1}
                 max={10000}
-                value={adults}
-                onChange={(e) => setAdults(parseInt(e.target.value) || 0)}
+                value={femaleAdults}
+                onChange={(e) => setFemaleAdults(parseInt(e.target.value) || 0)}
+                className="text-lg transition-all focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+
+            {/* Male Adults */}
+            <div className="space-y-2 group">
+              <Label htmlFor="maleAdults" className="flex items-center gap-2 text-sm font-medium">
+                <Beef className="h-4 w-4 text-chart-males transition-transform group-focus-within:scale-110" />
+                Adult Males (bulls)
+              </Label>
+              <Input
+                id="maleAdults"
+                type="number"
+                min={0}
+                max={10000}
+                value={maleAdults}
+                onChange={(e) => setMaleAdults(parseInt(e.target.value) || 0)}
                 className="text-lg transition-all focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
             {/* Young Cattle */}
-            <div className="space-y-2 group">
+            <div className="space-y-2 group md:col-span-2">
               <Label htmlFor="young" className="flex items-center gap-2 text-sm font-medium">
                 <Baby className="h-4 w-4 text-accent transition-transform group-focus-within:scale-110" />
                 Young Cattle (calves & yearlings)
@@ -155,7 +177,7 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
           {/* Cull / Sales Rate */}
           <div className="space-y-3">
             <Label className="flex items-center gap-2 text-sm font-medium">
-              <Scissors className="h-4 w-4 text-amber-600" />
+              <Scissors className="h-4 w-4 text-chart-males" />
               Cull / Sales Rate: <span className="text-primary font-semibold tabular-nums">{cullRate}%</span>
             </Label>
             <Slider
