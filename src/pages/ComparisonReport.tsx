@@ -18,6 +18,7 @@ import {
 } from "@/lib/herdCalculations";
 import { BarChart3, TrendingUp, TrendingDown, Target, AlertTriangle, Download, Loader2, Activity, Percent, Sigma, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
+import { ExplainReport } from "@/components/ExplainReport";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -94,19 +95,22 @@ const ComparisonReport = () => {
             </p>
           </div>
           {hasProjections && (
-            <Button 
-              onClick={handleExportPdf} 
-              disabled={isExporting}
-              className="gap-2 hover-lift"
-              variant="outline"
-            >
-              {isExporting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              Export PDF
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <ExplainReport projections={projections} config={config} actuals={eventRecords} mode="comparison" />
+              <Button 
+                onClick={handleExportPdf} 
+                disabled={isExporting}
+                className="gap-2 hover-lift"
+                variant="outline"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Export PDF
+              </Button>
+            </div>
           )}
         </div>
 

@@ -14,6 +14,7 @@ import {
 } from "@/lib/herdCalculations";
 import { Beef, TrendingUp, Target, Calendar, Download, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { ExplainReport } from "@/components/ExplainReport";
 
 type ProjectionConfig = {
   adults: number;
@@ -90,7 +91,7 @@ const HerdProjection = () => {
             </p>
           </div>
           {projections.length > 0 && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button 
                 onClick={handleClearData} 
                 className="gap-2"
@@ -100,6 +101,7 @@ const HerdProjection = () => {
                 <Trash2 className="h-4 w-4" />
                 Clear
               </Button>
+              <ExplainReport projections={projections} config={config} mode="projection" />
               <Button 
                 onClick={handleExportPdf} 
                 disabled={isExporting}
