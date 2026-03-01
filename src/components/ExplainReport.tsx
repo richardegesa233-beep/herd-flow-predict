@@ -13,7 +13,9 @@ import { HerdData, ActualRecord, calculateMAE, calculateMAPE, calculateRMSE, cal
 interface ExplainReportProps {
   projections: HerdData[];
   config?: {
-    adults: number;
+    femaleAdults?: number;
+    maleAdults?: number;
+    adults?: number;
     young: number;
     years: number;
     birthRate: number;
