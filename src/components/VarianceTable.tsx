@@ -37,7 +37,8 @@ export function VarianceTable({ data }: VarianceTableProps) {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="font-semibold">Year</TableHead>
-                <TableHead className="font-semibold text-right">Adults</TableHead>
+                <TableHead className="font-semibold text-right">♀ Breeders</TableHead>
+                <TableHead className="font-semibold text-right">♂ Bulls</TableHead>
                 <TableHead className="font-semibold text-right">Young</TableHead>
                 <TableHead className="font-semibold text-right">Births</TableHead>
                 <TableHead className="font-semibold text-right">Deaths</TableHead>
@@ -79,8 +80,11 @@ export function VarianceTable({ data }: VarianceTableProps) {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-medium">
+                    <TableCell className="text-right font-medium text-primary">
                       {formatNumber(row.adults)}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-chart-males">
+                      {formatNumber(row.maleAdults ?? 0)}
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {formatNumber(row.young)}
@@ -92,7 +96,7 @@ export function VarianceTable({ data }: VarianceTableProps) {
                       <span className="text-destructive">-{formatNumber(row.deaths)}</span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <span className="text-amber-600">-{formatNumber(row.culled)}</span>
+                      <span className="text-warning">-{formatNumber(row.culled)}</span>
                     </TableCell>
                     <TableCell className="text-right font-bold">
                       {formatNumber(row.total)}
