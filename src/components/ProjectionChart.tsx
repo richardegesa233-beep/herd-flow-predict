@@ -104,7 +104,8 @@ function FullChart({ data, hasActuals }: { data: any[]; hasActuals: boolean }) {
         <ReferenceLine y={avgTotal} stroke="hsl(var(--muted-foreground))" strokeDasharray="8 4" strokeOpacity={0.4} label={{ value: `Avg: ${Math.round(avgTotal).toLocaleString()}`, position: "right", fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
         <Area type="monotone" dataKey="Breeding Females" stackId="1" stroke="hsl(var(--chart-primary))" strokeWidth={2.5} fill="url(#gradAdultsFull)" name="Breeding Females (♀)" animationDuration={1200} />
         <Area type="monotone" dataKey="Female Young" stackId="1" stroke="hsl(var(--chart-secondary))" strokeWidth={2.5} fill="url(#gradYoungFull)" name="Female Young (♀)" animationDuration={1400} />
-        <Area type="monotone" dataKey="Males" stackId="1" stroke="hsl(var(--chart-males))" strokeWidth={2} fill="hsl(var(--chart-males) / 0.15)" name="Males (♂)" animationDuration={1500} />
+        <Area type="monotone" dataKey="Young Males" stackId="1" stroke="hsl(var(--chart-males))" strokeWidth={2} fill="hsl(var(--chart-males) / 0.15)" name="Young Males (♂)" animationDuration={1500} />
+        <Area type="monotone" dataKey="Adult Bulls" stackId="1" stroke="hsl(var(--chart-tertiary))" strokeWidth={2} fill="hsl(var(--chart-tertiary) / 0.12)" name="Adult Bulls (♂)" animationDuration={1600} />
         <Bar dataKey="Births" fill="hsl(var(--chart-primary))" opacity={0.25} name="Births" animationDuration={1000} barSize={data.length > 15 ? 8 : 14} />
         <Bar dataKey="Deaths" fill="hsl(var(--destructive))" opacity={0.25} name="Deaths" animationDuration={1000} barSize={data.length > 15 ? 8 : 14} />
         {hasActuals && (
@@ -130,7 +131,8 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
     year: `Year ${d.year}`,
     'Breeding Females': d.adults,
     'Female Young': d.young - (d.males || 0),
-    'Males': d.males || 0,
+    'Young Males': d.males || 0,
+    'Adult Bulls': d.maleAdults || 0,
     Total: d.total,
     Births: d.births,
     Deaths: d.deaths,
@@ -236,15 +238,25 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
                     name="Female Young (♀)"
                     animationDuration={1400}
                   />
-                   <Area
+                  <Area
                     type="monotone"
-                    dataKey="Males"
+                    dataKey="Young Males"
                     stackId="1"
                     stroke="hsl(var(--chart-males))"
                     strokeWidth={2}
                     fill="hsl(var(--chart-males) / 0.15)"
-                    name="Males (♂)"
+                    name="Young Males (♂)"
                     animationDuration={1500}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="Adult Bulls"
+                    stackId="1"
+                    stroke="hsl(var(--chart-tertiary))"
+                    strokeWidth={2}
+                    fill="hsl(var(--chart-tertiary) / 0.12)"
+                    name="Adult Bulls (♂)"
+                    animationDuration={1600}
                   />
                   {hasActuals && (
                     <Line
@@ -268,9 +280,10 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="font-semibold">Year</TableHead>
-                    <TableHead className="font-semibold text-right">♀ Adults</TableHead>
-                    <TableHead className="font-semibold text-right">Young</TableHead>
-                    <TableHead className="font-semibold text-right">♂ Males</TableHead>
+                    <TableHead className="font-semibold text-right">♀ Breeders</TableHead>
+                    <TableHead className="font-semibold text-right">♂ Bulls</TableHead>
+                    <TableHead className="font-semibold text-right">♀ Young</TableHead>
+                    <TableHead className="font-semibold text-right">♂ Young</TableHead>
                     <TableHead className="font-semibold text-right">Births</TableHead>
                     <TableHead className="font-semibold text-right">Deaths</TableHead>
                     <TableHead className="font-semibold text-right">Total</TableHead>
@@ -288,9 +301,10 @@ export function ProjectionChart({ data }: ProjectionChartProps) {
                           Year {row.year}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-medium">{formatNumber(row.adults)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatNumber(row.young)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatNumber(row.males)}</TableCell>
+                      <TableCell className="text-right font-medium text-primary">{formatNumber(row.adults)}</TableCell>
+                      <TableCell className="text-right font-medium text-chart-males">{formatNumber(row.maleAdults ?? 0)}</TableCell>
+                      <TableCell className="text-right font-medium text-chart-secondary">{formatNumber(row.young - (row.males ?? 0))}</TableCell>
+                      <TableCell className="text-right font-medium text-chart-males">{formatNumber(row.males ?? 0)}</TableCell>
                       <TableCell className="text-right">
                         <span className="text-primary">+{formatNumber(row.births)}</span>
                       </TableCell>

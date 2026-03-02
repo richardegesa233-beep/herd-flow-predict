@@ -54,7 +54,9 @@ const HerdProjection = () => {
       data.birthRate,
       data.mortalityRate,
       2,
-      data.cullRate
+      data.cullRate,
+      0.50,
+      data.maleAdults
     );
     setProjections(results);
     setConfig(data);

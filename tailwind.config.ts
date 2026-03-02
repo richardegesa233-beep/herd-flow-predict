@@ -56,7 +56,9 @@ export default {
           secondary: "hsl(var(--chart-secondary))",
           tertiary: "hsl(var(--chart-tertiary))",
           quaternary: "hsl(var(--chart-quaternary))",
+          males: "hsl(var(--chart-males))",
         },
+        warning: "hsl(var(--warning, 38 92% 50%))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
