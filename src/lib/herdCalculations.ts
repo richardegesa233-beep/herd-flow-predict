@@ -1,7 +1,7 @@
 export interface HerdData {
   year: number;
   adults: number;        // breeding females
-  maleAdults: number;   // adult bulls (constant, not bred)
+  maleAdults: number;   // adult bulls
   young: number;
   males: number;         // young males (pre-maturation)
   females: number;
@@ -12,6 +12,7 @@ export interface HerdData {
   deaths: number;
   culled: number;
   malesSold: number;
+  bullsSold: number;     // 50% of adult bulls sold yearly
   projectedTotal?: number;
   actualTotal?: number;
 }
@@ -106,6 +107,8 @@ export function calculateHerdProjection(
     
     // Males sold when they mature
     const malesSold = year === 0 ? 0 : (maleYoungByAge[maturationYears - 1] || 0);
+    // 50% of adult bulls sold each year
+    const bullsSold = year === 0 ? 0 : Math.round(maleAdults * 0.5);
     
     projections.push({
       year,
@@ -121,6 +124,7 @@ export function calculateHerdProjection(
       deaths,
       culled,
       malesSold,
+      bullsSold,
       projectedTotal: Math.round(total),
     });
     
@@ -133,9 +137,10 @@ export function calculateHerdProjection(
       const sold = Math.round(adults * cullRate);
       adults = adults + femaleMaturing - adultDeaths - sold;
 
-      // Apply mortality to male adults (bulls)
+      // Apply mortality and 50% sales to adult bulls
       const bullDeaths = Math.round(maleAdults * mortalityRate);
-      maleAdults = Math.max(0, maleAdults - bullDeaths);
+      const bullSales = Math.round(maleAdults * 0.5);
+      maleAdults = Math.max(0, maleAdults - bullDeaths - bullSales);
       
       // Shift female young ages and apply mortality
       for (let i = maturationYears - 1; i > 0; i--) {
