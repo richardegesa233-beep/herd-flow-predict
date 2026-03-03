@@ -59,9 +59,10 @@ function buildExplanation(
     sections.push({
       title: "🐄 Your Starting Herd",
       content: [
-        `You started with ${initial.adults.toLocaleString()} breeding females and ${initial.young.toLocaleString()} young cattle (calves and yearlings).`,
-        `That gives a total starting herd of ${initial.total.toLocaleString()} animals.`,
-        `Only the ${initial.adults.toLocaleString()} adult females can produce calves each year.`,
+        `You started with ${initial.adults.toLocaleString()} breeding females and ${(config.maleAdults ?? 0).toLocaleString()} adult bulls.`,
+        `Young cattle (calves & yearlings): ${initial.young.toLocaleString()} head. Total starting herd: ${initial.total.toLocaleString()} animals.`,
+        `Only the ${initial.adults.toLocaleString()} adult females contribute to breeding each year.`,
+        `Adult bulls are maintained for breeding coverage — 50% are sold each year as surplus, with mortality applied to the remainder.`,
       ],
     });
   }
@@ -74,8 +75,9 @@ function buildExplanation(
       `1. BIRTHS — Each breeding female has an ${((config?.birthRate ?? 0.85) * 100).toFixed(0)}% chance of producing a calf. Births are split 50% female and 50% male.`,
       `2. MORTALITY — ${((config?.mortalityRate ?? 0.05) * 100).toFixed(0)}% of every animal in the herd (adults and young) is removed to reflect natural deaths and losses.`,
       `3. CULLING / SALES — ${((config?.cullRate ?? 0.10) * 100).toFixed(0)}% of adult breeding females are culled or sold each year. This keeps the breeding herd manageable.`,
-      `4. MALE SALES — All male calves are raised for 2 years, then automatically sold. They do not stay in the breeding herd.`,
-      `5. FEMALE MATURATION — Female calves take 2 years to mature. After 2 years they join the adult breeding herd and start producing calves themselves.`,
+      `4. BULL SALES — 50% of adult bulls are sold each year as surplus. This provides an additional income stream alongside female culls.`,
+      `5. MALE SALES — All young males are raised for 2 years, then automatically sold at maturation.`,
+      `6. FEMALE MATURATION — Female calves take 2 years to mature. After 2 years they join the adult breeding herd.`,
       `This "delay before breeding" is the Fibonacci-inspired part — it mirrors how animal populations build slowly at first, then accelerate as new breeders come online.`,
     ],
   });
@@ -101,16 +103,36 @@ function buildExplanation(
       const curr = projections[i];
       const change = curr.total - prev.total;
       const pct = prev.total > 0 ? ((change / prev.total) * 100).toFixed(1) : "0";
-      const direction = change >= 0 ? "▲" : "▼";
       const births = curr.births ?? 0;
       const deaths = curr.deaths ?? 0;
-      const sales = (curr.culled ?? 0) + (curr.malesSold ?? 0);
+      const culled = curr.culled ?? 0;
+      const malesSold = curr.malesSold ?? 0;
+      const bullsSold = (curr as any).bullsSold ?? 0;
+
+      // Build a plain-English narrative sentence
+      let narrative = "";
+      const isFirstCalvingYear = i === 1;
+      const isFibonacciJump = i >= 2 && prev.adults > projections[i - 2]?.adults * 1.1;
+      const strongGrowth = change > 0 && parseFloat(pct) >= 8;
+      const declining = change < 0;
+
+      if (isFirstCalvingYear) {
+        narrative = `Your initial ${prev.adults.toLocaleString()} breeding females produced ${births.toLocaleString()} calves this year — the herd's first growth cycle begins.`;
+      } else if (isFibonacciJump) {
+        narrative = `🐄 "The Fibonacci Jump!" — Year ${i - 1} calves have now matured into the breeding pool. With ${curr.adults.toLocaleString()} breeding females active, you saw a record ${births.toLocaleString()} births this year.`;
+      } else if (strongGrowth) {
+        narrative = `Strong growth year. The expanded breeding herd of ${curr.adults.toLocaleString()} females delivered ${births.toLocaleString()} calves, pushing the total up ${change.toLocaleString()} head (${pct}%).`;
+      } else if (declining) {
+        narrative = `The herd dipped slightly this year — culls (${culled.toLocaleString()}), bull sales (${bullsSold.toLocaleString()}), and deaths (${deaths.toLocaleString()}) outpaced the ${births.toLocaleString()} births. Consider reviewing your cull or mortality rates.`;
+      } else {
+        narrative = `Steady year. ${births.toLocaleString()} calves born, ${deaths.toLocaleString()} lost to mortality, ${culled.toLocaleString()} females culled, ${malesSold.toLocaleString()} young males sold, and ${bullsSold.toLocaleString()} bulls sold — net change of ${change >= 0 ? "+" : ""}${change.toLocaleString()} head.`;
+      }
+
       const actualNote = curr.actualTotal !== undefined
-        ? ` | Actual: ${curr.actualTotal.toLocaleString()} (diff: ${(curr.total - curr.actualTotal) > 0 ? "+" : ""}${(curr.total - curr.actualTotal).toLocaleString()})`
+        ? ` Actual count: ${curr.actualTotal.toLocaleString()} (model diff: ${(curr.total - curr.actualTotal) > 0 ? "+" : ""}${(curr.total - curr.actualTotal).toLocaleString()}).`
         : "";
-      yearLines.push(
-        `Year ${curr.year}: ${curr.total.toLocaleString()} total ${direction} ${Math.abs(change).toLocaleString()} (${pct}%) — Births: ${births.toLocaleString()}, Deaths: ${deaths.toLocaleString()}, Sales: ${sales.toLocaleString()}${actualNote}`
-      );
+
+      yearLines.push(`Year ${curr.year} — Total: ${curr.total.toLocaleString()} (${change >= 0 ? "+" : ""}${change.toLocaleString()}, ${pct}%). ${narrative}${actualNote}`);
     }
     sections.push({
       title: "📅 Year-by-Year Breakdown",
