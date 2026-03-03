@@ -137,10 +137,13 @@ export function calculateHerdProjection(
       const sold = Math.round(adults * cullRate);
       adults = adults + femaleMaturing - adultDeaths - sold;
 
-      // Apply mortality and 50% sales to adult bulls
+      // Young males that mature → join adult bull pool
+      const maleMaturing = maleYoungByAge[maturationYears - 1] || 0;
+
+      // Apply mortality and 50% sales to adult bulls, then add newly matured males
       const bullDeaths = Math.round(maleAdults * mortalityRate);
       const bullSales = Math.round(maleAdults * 0.5);
-      maleAdults = Math.max(0, maleAdults - bullDeaths - bullSales);
+      maleAdults = Math.max(0, maleAdults - bullDeaths - bullSales + maleMaturing);
       
       // Shift female young ages and apply mortality
       for (let i = maturationYears - 1; i > 0; i--) {
@@ -148,7 +151,7 @@ export function calculateHerdProjection(
         femaleYoungByAge[i] = femaleYoungByAge[i - 1] - youngDeaths;
       }
       
-      // Shift male young ages and apply mortality (males sold at maturation)
+      // Shift male young ages and apply mortality
       for (let i = maturationYears - 1; i > 0; i--) {
         const youngDeaths = Math.round(maleYoungByAge[i - 1] * mortalityRate);
         maleYoungByAge[i] = maleYoungByAge[i - 1] - youngDeaths;
