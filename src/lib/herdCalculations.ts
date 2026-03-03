@@ -74,7 +74,7 @@ export function calculateHerdProjection(
   
   // Track female young by age for maturation (only females become breeding adults)
   let femaleYoungByAge: number[] = new Array(maturationYears).fill(0);
-  // Track male young by age (sold when mature)
+  // Track male young by age (stay in herd, only 50% of adult bulls are sold)
   let maleYoungByAge: number[] = new Array(maturationYears).fill(0);
   
   // Assume initial young split 50/50
@@ -105,8 +105,8 @@ export function calculateHerdProjection(
     // Calculate culled/sold (from adults only)
     const culled = year === 0 ? 0 : Math.round(adults * cullRate);
     
-    // Males sold when they mature
-    const malesSold = year === 0 ? 0 : (maleYoungByAge[maturationYears - 1] || 0);
+      // Young males that mature (they join the herd or are recorded, not auto-sold)
+      const malesSold = 0; // Young males are NOT sold; only 50% of adult bulls sold annually
     // 50% of adult bulls sold each year
     const bullsSold = year === 0 ? 0 : Math.round(maleAdults * 0.5);
     
