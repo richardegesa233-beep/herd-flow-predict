@@ -43,8 +43,8 @@ describe("ExplainReport starting herd data", () => {
     // years=1 so projections = [year0, year1]
     const projections = calculateHerdProjection(100, 0, 1, 0.85, 0.05, 2, 0.10, 0.50, 0);
     const year1 = projections[1];
-    // culled ≈ 10% of year0 adults = 10
-    expect(year1.culled).toBe(10);
+    // culled = 10% of current year total adults ≈ 9 (after mortality applied to 100)
+    expect(year1.culled).toBe(9);
     // malesSold should always be 0 (young males not auto-sold)
     expect(year1.malesSold).toBe(0);
   });
