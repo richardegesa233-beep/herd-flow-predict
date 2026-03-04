@@ -40,7 +40,8 @@ describe("ExplainReport starting herd data", () => {
   });
 
   it("culled is applied only to breeding females", () => {
-    const projections = calculateHerdProjection(100, 0, 0, 0.85, 0.05, 2, 0.10, 0.50, 0);
+    // years=1 so projections = [year0, year1]
+    const projections = calculateHerdProjection(100, 0, 1, 0.85, 0.05, 2, 0.10, 0.50, 0);
     const year1 = projections[1];
     // culled ≈ 10% of year0 adults = 10
     expect(year1.culled).toBe(10);
