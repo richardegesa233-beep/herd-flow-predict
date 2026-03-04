@@ -15,6 +15,7 @@ import {
 import { Beef, TrendingUp, Target, Calendar, Download, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ExplainReport } from "@/components/ExplainReport";
+import { ProjectionHistory, ProjectionSnapshot } from "@/components/ProjectionHistory";
 
 type ProjectionConfig = {
   femaleAdults: number;
