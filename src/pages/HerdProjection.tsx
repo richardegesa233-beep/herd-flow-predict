@@ -15,6 +15,7 @@ import {
 import { Beef, TrendingUp, Target, Calendar, Download, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ExplainReport } from "@/components/ExplainReport";
+import { ProjectionHistory, ProjectionSnapshot } from "@/components/ProjectionHistory";
 
 type ProjectionConfig = {
   femaleAdults: number;
@@ -34,6 +35,11 @@ const HerdProjection = () => {
     setProjections([]);
     setConfig(null);
     toast.success("Saved projection data cleared.");
+  };
+
+  const handleLoadSnapshot = (snapshot: ProjectionSnapshot) => {
+    setProjections(snapshot.projections);
+    setConfig(snapshot.config);
   };
 
   const { exportToPdf, isExporting } = usePdfExport();
@@ -105,6 +111,11 @@ const HerdProjection = () => {
                 <Trash2 className="h-4 w-4" />
                 Clear
               </Button>
+              <ProjectionHistory
+                currentProjections={projections}
+                currentConfig={config}
+                onLoad={handleLoadSnapshot}
+              />
               <ExplainReport projections={projections} config={config} mode="projection" />
               <Button 
                 onClick={handleExportPdf} 

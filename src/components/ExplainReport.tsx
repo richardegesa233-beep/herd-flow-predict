@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Download, X, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,7 +28,7 @@ interface ExplainReportProps {
 
 interface Section {
   title: string;
-  content: string[];
+  content: (string | { type: "table"; headers: string[]; rows: string[][] })[];
 }
 
 function buildExplanation(
@@ -41,162 +41,141 @@ function buildExplanation(
   const initial = projections[0];
   const final = projections[projections.length - 1];
 
-  // ─── Overview ───
   const growthPct = initial && final
     ? (((final.total - initial.total) / initial.total) * 100).toFixed(1)
     : "0";
+
+  // ─── Overview ───
   sections.push({
     title: "📋 What This Report Shows",
     content: [
       mode === "projection"
         ? `This report projects how your herd of ${initial?.total?.toLocaleString() ?? 0} cattle could grow over ${config?.years ?? 0} years using a Fibonacci-inspired mathematical model.`
-        : `This report compares what your model predicted versus what actually happened in the field. It helps you see how accurate the model is and where real life differed from the forecast.`,
+        : `This report compares what your model predicted versus what actually happened in the field.`,
     ],
   });
 
-  // ─── Starting Point ───
+  // ─── Starting Herd ───
   if (initial && config) {
     sections.push({
       title: "🐄 Your Starting Herd",
       content: [
-        `You started with ${initial.adults.toLocaleString()} breeding females and ${(config.maleAdults ?? 0).toLocaleString()} adult bulls.`,
-        `Young cattle (calves & yearlings): ${initial.young.toLocaleString()} head. Total starting herd: ${initial.total.toLocaleString()} animals.`,
-        `Only the ${initial.adults.toLocaleString()} adult females contribute to breeding each year.`,
-        `Adult bulls are maintained for breeding coverage — 50% are sold each year as surplus, with mortality applied to the remainder.`,
+        {
+          type: "table",
+          headers: ["Animal Type", "Count"],
+          rows: [
+            ["♀ Breeding Females", initial.adults.toLocaleString()],
+            ["♂ Adult Bulls", (config.maleAdults ?? 0).toLocaleString()],
+            ["♀ Young Females", (initial.young - (initial.males ?? 0)).toLocaleString()],
+            ["♂ Young Males", (initial.males ?? 0).toLocaleString()],
+            ["Total", initial.total.toLocaleString()],
+          ],
+        },
+        `Only the ${initial.adults.toLocaleString()} adult females contribute to breeding. 50% of adult bulls are sold each year as surplus.`,
       ],
     });
   }
 
-  // ─── How the maths works ───
+  // ─── How it works ───
   sections.push({
-    title: "🔢 How the Maths Works (Step by Step)",
+    title: "🔢 How the Maths Works",
     content: [
-      `Each year the model runs through these steps in order:`,
-      `1. BIRTHS — Each breeding female has an ${((config?.birthRate ?? 0.85) * 100).toFixed(0)}% chance of producing a calf. Births are split 50% female and 50% male.`,
-      `2. MORTALITY — ${((config?.mortalityRate ?? 0.05) * 100).toFixed(0)}% of every animal in the herd (adults and young) is removed to reflect natural deaths and losses.`,
-      `3. CULLING / SALES — ${((config?.cullRate ?? 0.10) * 100).toFixed(0)}% of adult breeding females are culled or sold each year. This keeps the breeding herd manageable.`,
-      `4. BULL SALES — 50% of adult bulls are sold each year as surplus. This provides an additional income stream alongside female culls.`,
-      `5. MALE SALES — All young males are raised for 2 years, then automatically sold at maturation.`,
-      `6. FEMALE MATURATION — Female calves take 2 years to mature. After 2 years they join the adult breeding herd.`,
-      `This "delay before breeding" is the Fibonacci-inspired part — it mirrors how animal populations build slowly at first, then accelerate as new breeders come online.`,
+      `Each year runs these steps: (1) BIRTHS — ${((config?.birthRate ?? 0.85) * 100).toFixed(0)}% of breeding females calve, split 50/50 ♀/♂. (2) MORTALITY — ${((config?.mortalityRate ?? 0.05) * 100).toFixed(0)}% removed from all groups. (3) CULLING — ${((config?.cullRate ?? 0.10) * 100).toFixed(0)}% of adult females sold. (4) BULL SALES — 50% of adult bulls sold annually. (5) MATURATION — young females and males join adult pools after 2 years.`,
     ],
   });
 
-  // ─── What happened ───
-  if (final && config) {
-    sections.push({
-      title: "📈 What the Model Predicts",
-      content: [
-        `After ${config.years} years your herd is projected to reach ${final.total.toLocaleString()} cattle.`,
-        `That is a ${growthPct}% change from your starting point of ${initial?.total?.toLocaleString() ?? 0}.`,
-        `The breeding female count moves from ${initial?.adults?.toLocaleString() ?? 0} to ${final.adults.toLocaleString()}.`,
-        `Each year males are sold when they mature — this is a regular income stream your operation can count on.`,
-      ],
-    });
-  }
-
-  // ─── Year by Year ───
+  // ─── Year by Year (structured table) ───
   if (projections.length > 1) {
-    const yearLines: string[] = [];
+    const headers = [
+      "Year",
+      "♀ Breeders", "♂ Bulls", "♀ Young", "♂ Young", "Total",
+      "♀ Births", "♂ Births", "Deaths", "Culled", "Bulls Sold", "Net Change",
+    ];
+    const rows: string[][] = [];
+
     for (let i = 1; i < projections.length; i++) {
       const prev = projections[i - 1];
       const curr = projections[i];
       const change = curr.total - prev.total;
-      const pct = prev.total > 0 ? ((change / prev.total) * 100).toFixed(1) : "0";
-      const births = curr.births ?? 0;
-      const deaths = curr.deaths ?? 0;
-      const culled = curr.culled ?? 0;
-      const malesSold = curr.malesSold ?? 0;
-      const bullsSold = (curr as any).bullsSold ?? 0;
+      const femalYoung = curr.young - (curr.males ?? 0);
 
-      // Build a plain-English narrative sentence
-      let narrative = "";
-      const isFirstCalvingYear = i === 1;
-      const isFibonacciJump = i >= 2 && prev.adults > projections[i - 2]?.adults * 1.1;
-      const strongGrowth = change > 0 && parseFloat(pct) >= 8;
-      const declining = change < 0;
-
-      if (isFirstCalvingYear) {
-        narrative = `Your initial ${prev.adults.toLocaleString()} breeding females produced ${births.toLocaleString()} calves this year — the herd's first growth cycle begins.`;
-      } else if (isFibonacciJump) {
-        narrative = `🐄 "The Fibonacci Jump!" — Year ${i - 1} calves have now matured into the breeding pool. With ${curr.adults.toLocaleString()} breeding females active, you saw a record ${births.toLocaleString()} births this year.`;
-      } else if (strongGrowth) {
-        narrative = `Strong growth year. The expanded breeding herd of ${curr.adults.toLocaleString()} females delivered ${births.toLocaleString()} calves, pushing the total up ${change.toLocaleString()} head (${pct}%).`;
-      } else if (declining) {
-        narrative = `The herd dipped slightly this year — culls (${culled.toLocaleString()}), bull sales (${bullsSold.toLocaleString()}), and deaths (${deaths.toLocaleString()}) outpaced the ${births.toLocaleString()} births. Consider reviewing your cull or mortality rates.`;
-      } else {
-        narrative = `Steady year. ${births.toLocaleString()} calves born, ${deaths.toLocaleString()} lost to mortality, ${culled.toLocaleString()} females culled, ${malesSold.toLocaleString()} young males sold, and ${bullsSold.toLocaleString()} bulls sold — net change of ${change >= 0 ? "+" : ""}${change.toLocaleString()} head.`;
-      }
-
-      const actualNote = curr.actualTotal !== undefined
-        ? ` Actual count: ${curr.actualTotal.toLocaleString()} (model diff: ${(curr.total - curr.actualTotal) > 0 ? "+" : ""}${(curr.total - curr.actualTotal).toLocaleString()}).`
-        : "";
-
-      yearLines.push(`Year ${curr.year} — Total: ${curr.total.toLocaleString()} (${change >= 0 ? "+" : ""}${change.toLocaleString()}, ${pct}%). ${narrative}${actualNote}`);
+      rows.push([
+        `Year ${curr.year}`,
+        curr.adults.toLocaleString(),
+        (curr.maleAdults ?? 0).toLocaleString(),
+        femalYoung.toLocaleString(),
+        (curr.males ?? 0).toLocaleString(),
+        curr.total.toLocaleString(),
+        `+${curr.femaleBirths.toLocaleString()}`,
+        `+${curr.maleBirths.toLocaleString()}`,
+        `-${curr.deaths.toLocaleString()}`,
+        `-${curr.culled.toLocaleString()}`,
+        `-${(curr.bullsSold ?? 0).toLocaleString()}`,
+        `${change >= 0 ? "+" : ""}${change.toLocaleString()}`,
+      ]);
     }
+
     sections.push({
-      title: "📅 Year-by-Year Breakdown",
-      content: yearLines,
+      title: "📅 Year-by-Year Breakdown (All Animal Types)",
+      content: [{ type: "table", headers, rows }],
     });
   }
 
-  // ─── Comparison-specific ───
+  // ─── Final summary ───
+  if (final && config) {
+    sections.push({
+      title: "📈 Final Projection Summary",
+      content: [
+        {
+          type: "table",
+          headers: ["Animal Type", `Year 0`, `Year ${config.years}`, "Change"],
+          rows: [
+            ["♀ Breeders", initial?.adults.toLocaleString() ?? "0", final.adults.toLocaleString(), `${final.adults - (initial?.adults ?? 0) >= 0 ? "+" : ""}${(final.adults - (initial?.adults ?? 0)).toLocaleString()}`],
+            ["♂ Bulls", (config.maleAdults ?? 0).toLocaleString(), (final.maleAdults ?? 0).toLocaleString(), `${(final.maleAdults ?? 0) - (config.maleAdults ?? 0) >= 0 ? "+" : ""}${((final.maleAdults ?? 0) - (config.maleAdults ?? 0)).toLocaleString()}`],
+            ["Total", initial?.total.toLocaleString() ?? "0", final.total.toLocaleString(), `${growthPct}%`],
+          ],
+        },
+      ],
+    });
+  }
+
+  // ─── Comparison accuracy ───
   if (mode === "comparison" && projections.some(p => p.actualTotal !== undefined)) {
     const mae = calculateMAE(projections);
     const mape = calculateMAPE(projections);
     const rmse = calculateRMSE(projections);
     const bias = calculateBias(projections);
-
     const accuracyLines: string[] = [];
 
     if (mape !== null) {
       const label = mape < 10 ? "excellent" : mape < 25 ? "moderate" : "poor";
-      accuracyLines.push(
-        `MAPE (Mean Absolute Percentage Error) is ${mape.toFixed(1)}% — this is ${label} accuracy. In plain terms, on average the model was ${mape.toFixed(1)}% off the real head count each year.`
-      );
+      accuracyLines.push(`MAPE: ${mape.toFixed(1)}% — ${label} accuracy. On average the model was ${mape.toFixed(1)}% off per year.`);
     }
-    if (mae !== null) {
-      accuracyLines.push(
-        `MAE (Mean Absolute Error) is ${mae.toFixed(1)} head — on average the projection differed from reality by ${mae.toFixed(1)} animals per year.`
-      );
-    }
-    if (rmse !== null) {
-      accuracyLines.push(
-        `RMSE (Root Mean Square Error) is ${rmse.toFixed(1)} — similar to MAE but punishes large single-year errors more heavily. A much higher RMSE than MAE signals one or two bad years skewing the result.`
-      );
-    }
+    if (mae !== null) accuracyLines.push(`MAE: ${mae.toFixed(1)} head average difference per year.`);
+    if (rmse !== null) accuracyLines.push(`RMSE: ${rmse.toFixed(1)} — a much higher RMSE than MAE signals one or two bad years.`);
     if (bias !== null) {
-      const biasLabel = bias > 5 ? "over-projecting (the model is optimistic)" : bias < -5 ? "under-projecting (the model is conservative)" : "well-balanced with no significant lean";
-      accuracyLines.push(
-        `Bias is ${bias > 0 ? "+" : ""}${bias.toFixed(1)} — the model is ${biasLabel}. Positive means projected was higher than actual; negative means lower.`
-      );
+      const biasLabel = bias > 5 ? "over-projecting (optimistic)" : bias < -5 ? "under-projecting (conservative)" : "well-balanced";
+      accuracyLines.push(`Bias: ${bias > 0 ? "+" : ""}${bias.toFixed(1)} — ${biasLabel}.`);
     }
-
-    if (accuracyLines.length) {
-      sections.push({
-        title: "🎯 How Accurate Was the Model?",
-        content: accuracyLines,
-      });
-    }
+    if (accuracyLines.length) sections.push({ title: "🎯 Model Accuracy", content: accuracyLines });
 
     sections.push({
-      title: "💡 What to Do with This Information",
+      title: "💡 What to Do",
       content: [
-        `If accuracy is good (MAPE < 10%) — your parameters are well-calibrated. Keep using the same birth rate, mortality, and cull rate.`,
-        `If MAPE is between 10–25% — consider adjusting one parameter at a time. Start with birth rate as it has the biggest effect.`,
-        `If MAPE is above 25% — real-world conditions may differ significantly (drought, disease, market). Review your mortality and cull rates.`,
-        `If bias is strongly positive — the model is too optimistic. Try lowering birth rate or raising mortality slightly.`,
-        `If bias is strongly negative — conditions in the field are better than assumed. You may be able to reduce culling.`,
+        `MAPE < 10% — well-calibrated, keep your rates.`,
+        `MAPE 10–25% — adjust birth rate first, it has the biggest effect.`,
+        `MAPE > 25% — real-world conditions differ significantly (drought, disease). Review mortality & cull rates.`,
+        `Strong positive bias — model is too optimistic. Lower birth rate or raise mortality.`,
+        `Strong negative bias — conditions better than assumed. Consider reducing culling.`,
       ],
     });
   } else if (mode === "projection") {
     sections.push({
       title: "💡 How to Use This Projection",
       content: [
-        `Use the Year 1–3 figures for near-term budgeting — births and sales in those years are the most reliable.`,
-        `Beyond Year 5 the compound effects of the model grow large, so treat longer-term projections as a planning range, not a guarantee.`,
-        `Log your actual births, deaths, and sales in the Event Logging page each year. Then visit the Comparison Report to see how reality tracks against this forecast.`,
-        `Adjust the birth rate and cull rate to model "best case" vs "worst case" scenarios for better risk planning.`,
+        `Year 1–3 figures are most reliable for near-term budgeting.`,
+        `Beyond Year 5, treat projections as a planning range, not a guarantee.`,
+        `Log actual births, deaths, and sales in Event Logging, then check the Comparison Report for accuracy.`,
       ],
     });
   }
@@ -212,15 +191,61 @@ function sectionsToPlainText(sections: Section[], title: string): string {
     "",
   ];
   for (const s of sections) {
-    lines.push(s.title.replace(/[^\w\s()%+\-.,]/g, "").trim());
+    lines.push(s.title.replace(/[^\w\s()%+\-.,♀♂]/g, "").trim());
     lines.push("-".repeat(40));
-    for (const line of s.content) {
-      lines.push(line);
+    for (const item of s.content) {
+      if (typeof item === "string") {
+        lines.push(item);
+      } else {
+        // Render table as text
+        lines.push(item.headers.join(" | "));
+        lines.push("-".repeat(60));
+        for (const row of item.rows) lines.push(row.join(" | "));
+      }
       lines.push("");
     }
     lines.push("");
   }
   return lines.join("\n");
+}
+
+function RenderTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
+  return (
+    <div className="overflow-x-auto rounded-md border border-border">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-muted/60">
+            {headers.map((h, i) => (
+              <th key={i} className="px-3 py-2 text-left font-semibold text-foreground whitespace-nowrap">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, ri) => (
+            <tr key={ri} className={ri % 2 === 0 ? "bg-background" : "bg-muted/20"}>
+              {row.map((cell, ci) => {
+                const isLast = ci === row.length - 1;
+                const isPositive = cell.startsWith("+");
+                const isNegative = cell.startsWith("-");
+                return (
+                  <td
+                    key={ci}
+                    className={`px-3 py-1.5 whitespace-nowrap font-medium
+                      ${isLast && isPositive ? "text-primary" : ""}
+                      ${isLast && isNegative ? "text-destructive" : ""}
+                      ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}
+                    `}
+                  >
+                    {cell}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export function ExplainReport({ projections, config, actuals = [], mode = "projection" }: ExplainReportProps) {
@@ -230,7 +255,6 @@ export function ExplainReport({ projections, config, actuals = [], mode = "proje
   if (!projections.length) return null;
 
   const sections = buildExplanation(projections, config, actuals, mode);
-
   const toggleSection = (i: number) =>
     setExpandedSections(prev => ({ ...prev, [i]: !prev[i] }));
 
@@ -248,30 +272,26 @@ export function ExplainReport({ projections, config, actuals = [], mode = "proje
 
   return (
     <>
-      <Button
-        onClick={() => setOpen(true)}
-        variant="outline"
-        className="gap-2 hover-lift"
-      >
+      <Button onClick={() => setOpen(true)} variant="outline" className="gap-2 hover-lift">
         <BookOpen className="h-4 w-4" />
         Explain This Report
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-display">
               <BookOpen className="h-5 w-5 text-primary" />
               {mode === "projection" ? "Your Herd Projection — Explained Simply" : "Comparison Report — Explained Simply"}
             </DialogTitle>
             <DialogDescription>
-              A plain-English breakdown of the numbers, the maths, and what it all means.
+              Plain-English breakdown by animal type — births, deaths, sold, culled per year.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 mt-2">
             {sections.map((section, i) => {
-              const isOpen = expandedSections[i] !== false; // default open
+              const isOpen = expandedSections[i] !== false;
               return (
                 <div key={i} className="border border-border rounded-lg overflow-hidden">
                   <button
@@ -282,10 +302,12 @@ export function ExplainReport({ projections, config, actuals = [], mode = "proje
                     {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
                   </button>
                   {isOpen && (
-                    <div className="px-4 py-3 space-y-2">
-                      {section.content.map((line, j) => (
-                        <p key={j} className="text-sm text-muted-foreground leading-relaxed">{line}</p>
-                      ))}
+                    <div className="px-4 py-3 space-y-3">
+                      {section.content.map((item, j) =>
+                        typeof item === "string"
+                          ? <p key={j} className="text-sm text-muted-foreground leading-relaxed">{item}</p>
+                          : <RenderTable key={j} headers={item.headers} rows={item.rows} />
+                      )}
                     </div>
                   )}
                 </div>

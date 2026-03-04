@@ -50,10 +50,10 @@ export function ProjectionTable({ data }: ProjectionTableProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg border overflow-x-auto w-full">
+        <div className="rounded-lg border overflow-auto w-full max-h-[500px]">
           <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
+            <TableHeader className="sticky top-0 z-10">
+              <TableRow className="bg-muted/80 backdrop-blur-sm">
                 <TableHead className="font-semibold">Year</TableHead>
                 <TableHead className="font-semibold text-right">♀ Breeders</TableHead>
                 <TableHead className="font-semibold text-right">♂ Bulls</TableHead>
