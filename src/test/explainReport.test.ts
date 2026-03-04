@@ -8,9 +8,11 @@ describe("ExplainReport starting herd data", () => {
     expect(year0.year).toBe(0);
     expect(year0.adults).toBe(100);      // breeding females
     expect(year0.maleAdults).toBe(10);   // adult bulls
-    expect(year0.young).toBe(30);        // total young
+    expect(year0.young).toBe(30);        // total young (males+females combined)
     expect(year0.males).toBe(15);        // young males (50% of 30)
-    expect(year0.total).toBe(155);       // 100+10+30+15 = but young is already 30 total
+    // total = adults(100) + maleAdults(10) + young females(15) + maleAdults already counted in total calc
+    // actual total = femaleAdults + maleAdults + youngFemales + youngMales = 100+10+15+15 = 140
+    expect(year0.total).toBe(140);
   });
 
   it("young males grow each year (maturation pipeline)", () => {
