@@ -50,7 +50,7 @@ export function ProjectionTable({ data }: ProjectionTableProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg border overflow-x-auto w-full">
+        <div className="rounded-lg border overflow-auto w-full max-h-[500px]">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
