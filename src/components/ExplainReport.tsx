@@ -55,23 +55,54 @@ function buildExplanation(
     ],
   });
 
-  // ─── Starting Herd ───
+  // ─── Starting Herd (Year 0 snapshot) ───
   if (initial && config) {
+    const femaleYoung0 = initial.young - (initial.males ?? 0);
+    const maleYoung0 = initial.males ?? 0;
+
     sections.push({
-      title: "🐄 Your Starting Herd",
+      title: "🐄 Starting Herd at Year 0",
       content: [
         {
           type: "table",
-          headers: ["Animal Type", "Count"],
+          headers: ["Animal Type", "No.", "Sold/yr", "Culled/yr", "Died/yr"],
           rows: [
-            ["♀ Breeding Females", initial.adults.toLocaleString()],
-            ["♂ Adult Bulls", (config.maleAdults ?? 0).toLocaleString()],
-            ["♀ Young Females", (initial.young - (initial.males ?? 0)).toLocaleString()],
-            ["♂ Young Males", (initial.males ?? 0).toLocaleString()],
-            ["Total", initial.total.toLocaleString()],
+            [
+              "♀ Breeding Females",
+              initial.adults.toLocaleString(),
+              "—",
+              `~${Math.round(initial.adults * (config.cullRate ?? 0.10)).toLocaleString()}`,
+              `~${Math.round(initial.adults * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+            ],
+            [
+              "♂ Adult Bulls",
+              (config.maleAdults ?? 0).toLocaleString(),
+              `~${Math.round((config.maleAdults ?? 0) * 0.5).toLocaleString()} (50%)`,
+              "—",
+              `~${Math.round((config.maleAdults ?? 0) * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+            ],
+            [
+              "♀ Young Females",
+              femaleYoung0.toLocaleString(),
+              "—",
+              "—",
+              `~${Math.round(femaleYoung0 * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+            ],
+            [
+              "♂ Young Males",
+              maleYoung0.toLocaleString(),
+              "—",
+              "—",
+              `~${Math.round(maleYoung0 * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+            ],
+            [
+              "Total",
+              initial.total.toLocaleString(),
+              "—", "—", "—",
+            ],
           ],
         },
-        `Only the ${initial.adults.toLocaleString()} adult females contribute to breeding. 50% of adult bulls are sold each year as surplus.`,
+        `Only the ${initial.adults.toLocaleString()} adult females contribute to breeding. 50% of adult bulls are sold annually; young males mature into the bull pool after 2 years.`,
       ],
     });
   }
