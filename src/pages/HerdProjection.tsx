@@ -111,6 +111,11 @@ const HerdProjection = () => {
                 <Trash2 className="h-4 w-4" />
                 Clear
               </Button>
+              <ProjectionHistory
+                currentProjections={projections}
+                currentConfig={config}
+                onLoad={handleLoadSnapshot}
+              />
               <ExplainReport projections={projections} config={config} mode="projection" />
               <Button 
                 onClick={handleExportPdf} 
