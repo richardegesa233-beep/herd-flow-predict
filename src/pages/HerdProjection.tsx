@@ -37,6 +37,11 @@ const HerdProjection = () => {
     toast.success("Saved projection data cleared.");
   };
 
+  const handleLoadSnapshot = (snapshot: ProjectionSnapshot) => {
+    setProjections(snapshot.projections);
+    setConfig(snapshot.config);
+  };
+
   const { exportToPdf, isExporting } = usePdfExport();
 
   const handleGenerateProjection = (data: {
