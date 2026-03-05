@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { HerdData, formatNumber } from "@/lib/herdCalculations";
 import {
   Table,
@@ -9,13 +10,16 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TableIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TableIcon, TrendingUp, TrendingDown, Minus, Maximize2, Minimize2 } from "lucide-react";
 
 interface VarianceTableProps {
   data: HerdData[];
 }
 
 export function VarianceTable({ data }: VarianceTableProps) {
+  const [expanded, setExpanded] = useState(false);
+
   if (data.length === 0) return null;
 
   const hasActuals = data.some(d => d.actualTotal !== undefined);
@@ -23,19 +27,32 @@ export function VarianceTable({ data }: VarianceTableProps) {
   return (
     <Card className="shadow-card">
       <CardHeader>
-        <CardTitle className="text-xl font-display flex items-center gap-2">
-          <TableIcon className="h-5 w-5 text-primary" />
-          Detailed Variance Analysis — All Years
-        </CardTitle>
-        <CardDescription>
-          Full year-by-year breakdown of projected vs actual herd performance
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-display flex items-center gap-2">
+              <TableIcon className="h-5 w-5 text-primary" />
+              Detailed Variance Analysis — All Years
+            </CardTitle>
+            <CardDescription>
+              Full year-by-year breakdown of projected vs actual herd performance
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 shrink-0"
+            onClick={() => setExpanded(e => !e)}
+          >
+            {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {expanded ? "Collapse" : "Full Table"}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg border overflow-x-auto">
+        <div className={`rounded-lg border overflow-x-auto transition-all duration-300 ${expanded ? "" : "max-h-[420px] overflow-y-auto"}`}>
           <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
+            <TableHeader className="sticky top-0 z-10">
+              <TableRow className="bg-muted/90 backdrop-blur-sm">
                 <TableHead className="font-semibold">Year</TableHead>
                 <TableHead className="font-semibold text-right">♀ Breeders</TableHead>
                 <TableHead className="font-semibold text-right">♂ Bulls</TableHead>
@@ -64,9 +81,7 @@ export function VarianceTable({ data }: VarianceTableProps) {
                 return (
                   <TableRow
                     key={row.year}
-                    className={`hover:bg-muted/30 transition-colors ${
-                      hasActual ? 'bg-primary/[0.03]' : ''
-                    }`}
+                    className={`hover:bg-muted/30 transition-colors ${hasActual ? 'bg-primary/[0.03]' : ''}`}
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
