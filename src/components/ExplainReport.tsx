@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, Download, ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
