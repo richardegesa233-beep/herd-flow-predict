@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { HerdData, formatNumber } from "@/lib/herdCalculations";
 import {
   Table,
@@ -9,13 +10,16 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TableIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TableIcon, TrendingUp, TrendingDown, Maximize2, Minimize2 } from "lucide-react";
 
 interface ProjectionTableProps {
   data: HerdData[];
 }
 
 export function ProjectionTable({ data }: ProjectionTableProps) {
+  const [expanded, setExpanded] = useState(false);
+
   if (data.length === 0) return null;
 
   const getGrowthIndicator = (current: number, previous: number) => {
@@ -41,19 +45,32 @@ export function ProjectionTable({ data }: ProjectionTableProps) {
   return (
     <Card className="shadow-card animate-slide-up">
       <CardHeader>
-        <CardTitle className="text-xl font-display flex items-center gap-2">
-          <TableIcon className="h-5 w-5 text-primary" />
-          Year-by-Year Projection
-        </CardTitle>
-        <CardDescription>
-          Detailed breakdown of your herd growth over time
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-display flex items-center gap-2">
+              <TableIcon className="h-5 w-5 text-primary" />
+              Year-by-Year Projection
+            </CardTitle>
+            <CardDescription>
+              Detailed breakdown of your herd growth over time
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 shrink-0"
+            onClick={() => setExpanded(e => !e)}
+          >
+            {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {expanded ? "Collapse" : "Full Table"}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg border overflow-auto w-full max-h-[500px]">
+        <div className={`rounded-lg border overflow-x-auto w-full transition-all duration-300 ${expanded ? "" : "max-h-[420px] overflow-y-auto"}`}>
           <Table>
             <TableHeader className="sticky top-0 z-10">
-              <TableRow className="bg-muted/80 backdrop-blur-sm">
+              <TableRow className="bg-muted/90 backdrop-blur-sm">
                 <TableHead className="font-semibold">Year</TableHead>
                 <TableHead className="font-semibold text-right">♀ Breeders</TableHead>
                 <TableHead className="font-semibold text-right">♂ Bulls</TableHead>
@@ -73,8 +90,8 @@ export function ProjectionTable({ data }: ProjectionTableProps) {
             </TableHeader>
             <TableBody>
               {data.map((row, index) => (
-                <TableRow 
-                  key={row.year} 
+                <TableRow
+                  key={row.year}
                   className="hover:bg-muted/30 transition-colors"
                 >
                   <TableCell>

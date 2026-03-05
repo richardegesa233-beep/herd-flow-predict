@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Download, ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
+import { BookOpen, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,7 +28,7 @@ interface ExplainReportProps {
 
 interface Section {
   title: string;
-  content: (string | { type: "table"; headers: string[]; rows: string[][]; fullTable?: boolean })[];
+  content: string[];
 }
 
 function buildExplanation(
@@ -47,146 +47,89 @@ function buildExplanation(
 
   // ─── Overview ───
   sections.push({
-    title: "📋 What This Report Shows",
+    title: mode === "projection" ? "📋 What This Report Shows" : "📋 About This Comparison",
     content: [
       mode === "projection"
-        ? `This report projects how your herd of ${initial?.total?.toLocaleString() ?? 0} cattle could grow over ${config?.years ?? 0} years using a Fibonacci-inspired mathematical model.`
-        : `This report compares what your model predicted versus what actually happened in the field.`,
+        ? `This report projects how your herd of ${initial?.total?.toLocaleString() ?? 0} cattle could grow over ${config?.years ?? 0} years using a Fibonacci-inspired mathematical model. It breaks down how many animals are born, die, are culled, and are sold each year — and how the herd total changes as a result.`
+        : `This report compares what your model predicted versus what actually happened in the field. Use it to judge how accurate your birth rate, mortality, and cull assumptions are.`,
     ],
   });
 
-  // ─── Starting Herd (Year 0 snapshot) ───
+  // ─── Starting Herd (Year 0) — prose only ───
   if (initial && config) {
     const femaleYoung0 = initial.young - (initial.males ?? 0);
     const maleYoung0 = initial.males ?? 0;
     const bullsN = config.maleAdults ?? 0;
     const mort = config.mortalityRate ?? 0.05;
     const cull = config.cullRate ?? 0.10;
+    const birthRate = config.birthRate ?? 0.85;
 
-    // Plain-English narrative
-    const narrativeParts: string[] = [];
-    narrativeParts.push(
-      `You are starting with ${initial.total.toLocaleString()} cattle total: ` +
-      `${initial.adults.toLocaleString()} breeding females, ` +
-      `${bullsN.toLocaleString()} adult bulls, ` +
-      `${femaleYoung0.toLocaleString()} young females, and ` +
-      `${maleYoung0.toLocaleString()} young males.`
-    );
-    narrativeParts.push(
-      `Each year, roughly ${Math.round(initial.adults * cull)} breeding females will be culled (${(cull * 100).toFixed(0)}%), ` +
-      `${Math.round(initial.adults * mort)} will die from natural causes (${(mort * 100).toFixed(0)}% mortality), and ` +
-      `${bullsN > 0 ? `about ${Math.round(bullsN * 0.5)} of the ${bullsN} adult bulls will be sold (50%).` : "no bulls will be sold yet (no adult bulls at start)."}`
-    );
-    narrativeParts.push(
-      `Young animals mature into the adult pool after 2 years — young females join the breeders, young males join the bull pool before 50% are sold.`
-    );
+    const estFemaleBirths = Math.round(initial.adults * birthRate * 0.5);
+    const estMaleBirths = Math.round(initial.adults * birthRate * 0.5);
+    const estFemaleDeaths = Math.round(initial.adults * mort);
+    const estBullDeaths = Math.round(bullsN * mort);
+    const estFemaleYoungDeaths = Math.round(femaleYoung0 * mort);
+    const estMaleYoungDeaths = Math.round(maleYoung0 * mort);
+    const estCulled = Math.round(initial.adults * cull);
+    const estBullsSold = Math.round(bullsN * 0.5);
 
     sections.push({
       title: "🐄 Starting Herd at Year 0",
       content: [
-        narrativeParts.join(" "),
-        {
-          type: "table",
-          headers: ["Animal Type", "No.", "Sold/yr", "Culled/yr", "Died/yr"],
-          rows: [
-            [
-              "♀ Breeding Females",
-              initial.adults.toLocaleString(),
-              "—",
-              `~${Math.round(initial.adults * cull).toLocaleString()}`,
-              `~${Math.round(initial.adults * mort).toLocaleString()}`,
-            ],
-            [
-              "♂ Adult Bulls",
-              bullsN.toLocaleString(),
-              `~${Math.round(bullsN * 0.5).toLocaleString()} (50%)`,
-              "—",
-              `~${Math.round(bullsN * mort).toLocaleString()}`,
-            ],
-            [
-              "♀ Young Females",
-              femaleYoung0.toLocaleString(),
-              "—",
-              "—",
-              `~${Math.round(femaleYoung0 * mort).toLocaleString()}`,
-            ],
-            [
-              "♂ Young Males",
-              maleYoung0.toLocaleString(),
-              "—",
-              "—",
-              `~${Math.round(maleYoung0 * mort).toLocaleString()}`,
-            ],
-            [
-              "Total",
-              initial.total.toLocaleString(),
-              "—", "—", "—",
-            ],
-          ],
-        },
+        `You are starting with ${initial.total.toLocaleString()} cattle in total.`,
+        `♀ Breeding Females: ${initial.adults.toLocaleString()} animals. Each year roughly ${estFemaleBirths.toLocaleString()} female calves and ${estMaleBirths.toLocaleString()} male calves will be born (${(birthRate * 100).toFixed(0)}% birth rate, split 50/50). About ${estCulled.toLocaleString()} breeders will be culled (${(cull * 100).toFixed(0)}%) and ${estFemaleDeaths.toLocaleString()} will die from natural causes (${(mort * 100).toFixed(0)}% mortality).`,
+        `♂ Adult Bulls: ${bullsN.toLocaleString()} animals. About ${estBullsSold.toLocaleString()} bulls will be sold each year (50% sold annually) and ${estBullDeaths.toLocaleString()} will die from natural causes.`,
+        `♀ Young Females: ${femaleYoung0.toLocaleString()} animals. About ${estFemaleYoungDeaths.toLocaleString()} will die each year. After 2 years they mature into the breeding female pool.`,
+        `♂ Young Males: ${maleYoung0.toLocaleString()} animals. About ${estMaleYoungDeaths.toLocaleString()} will die each year. After 2 years they mature into the bull pool, then 50% of those bulls are sold.`,
       ],
     });
   }
 
-  // ─── How it works ───
+  // ─── How the maths works ───
   sections.push({
     title: "🔢 How the Maths Works",
     content: [
-      `Each year runs these steps: (1) BIRTHS — ${((config?.birthRate ?? 0.85) * 100).toFixed(0)}% of breeding females calve, split 50/50 ♀/♂. (2) MORTALITY — ${((config?.mortalityRate ?? 0.05) * 100).toFixed(0)}% removed from all groups. (3) CULLING — ${((config?.cullRate ?? 0.10) * 100).toFixed(0)}% of adult females sold. (4) BULL SALES — 50% of adult bulls sold annually. (5) MATURATION — young females and males join adult pools after 2 years.`,
+      `Each year the model runs five steps in order:`,
+      `1. BIRTHS — ${((config?.birthRate ?? 0.85) * 100).toFixed(0)}% of breeding females calve, with calves split evenly 50% female and 50% male.`,
+      `2. MORTALITY — ${((config?.mortalityRate ?? 0.05) * 100).toFixed(0)}% is removed from every group (breeders, bulls, and young animals alike).`,
+      `3. CULLING — ${((config?.cullRate ?? 0.10) * 100).toFixed(0)}% of adult breeding females are culled and removed from the herd.`,
+      `4. BULL SALES — 50% of adult bulls are sold and removed each year.`,
+      `5. MATURATION — young females (2 years old) graduate into the breeding female pool. Young males (2 years old) graduate into the bull pool, then the 50% bull sales rule applies immediately.`,
     ],
   });
 
-  // ─── Year by Year (structured table) ───
+  // ─── Year-by-year prose highlights ───
   if (projections.length > 1) {
-    const headers = [
-      "Year",
-      "♀ Breeders", "♂ Bulls", "♀ Young", "♂ Young", "Total",
-      "♀ Births", "♂ Births", "Deaths", "Culled", "Bulls Sold", "Net Change",
-    ];
-    const rows: string[][] = [];
+    const highlights: string[] = [];
 
     for (let i = 1; i < projections.length; i++) {
       const prev = projections[i - 1];
       const curr = projections[i];
-      const change = curr.total - prev.total;
-      const femalYoung = curr.young - (curr.males ?? 0);
+      const net = curr.total - prev.total;
+      const pct = prev.total > 0 ? ((net / prev.total) * 100).toFixed(1) : "0";
+      const direction = net > 0 ? "grew by" : net < 0 ? "shrank by" : "stayed flat at";
+      const change = net !== 0 ? `${Math.abs(net).toLocaleString()} head (${Math.abs(Number(pct))}%)` : `${curr.total.toLocaleString()} head`;
 
-      rows.push([
-        `Year ${curr.year}`,
-        curr.adults.toLocaleString(),
-        (curr.maleAdults ?? 0).toLocaleString(),
-        femalYoung.toLocaleString(),
-        (curr.males ?? 0).toLocaleString(),
-        curr.total.toLocaleString(),
-        `+${curr.femaleBirths.toLocaleString()}`,
-        `+${curr.maleBirths.toLocaleString()}`,
-        `-${curr.deaths.toLocaleString()}`,
-        `-${curr.culled.toLocaleString()}`,
-        `-${(curr.bullsSold ?? 0).toLocaleString()}`,
-        `${change >= 0 ? "+" : ""}${change.toLocaleString()}`,
-      ]);
+      highlights.push(
+        `Year ${curr.year}: The herd ${direction} ${change} — ${curr.femaleBirths.toLocaleString()} female & ${curr.maleBirths.toLocaleString()} male births, ${curr.deaths.toLocaleString()} deaths, ${curr.culled.toLocaleString()} culled, ${(curr.bullsSold ?? 0).toLocaleString()} bulls sold. Total: ${curr.total.toLocaleString()}.`
+      );
     }
 
     sections.push({
-      title: "📅 Year-by-Year Breakdown (All Animal Types)",
-      content: [{ type: "table", headers, rows, fullTable: true }],
+      title: "📅 Year-by-Year Summary",
+      content: highlights,
     });
   }
 
-  // ─── Final summary ───
-  if (final && config) {
+  // ─── Final projection summary ───
+  if (final && initial && config) {
+    const netChange = final.total - initial.total;
     sections.push({
       title: "📈 Final Projection Summary",
       content: [
-        {
-          type: "table",
-          headers: ["Animal Type", `Year 0`, `Year ${config.years}`, "Change"],
-          rows: [
-            ["♀ Breeders", initial?.adults.toLocaleString() ?? "0", final.adults.toLocaleString(), `${final.adults - (initial?.adults ?? 0) >= 0 ? "+" : ""}${(final.adults - (initial?.adults ?? 0)).toLocaleString()}`],
-            ["♂ Bulls", (config.maleAdults ?? 0).toLocaleString(), (final.maleAdults ?? 0).toLocaleString(), `${(final.maleAdults ?? 0) - (config.maleAdults ?? 0) >= 0 ? "+" : ""}${((final.maleAdults ?? 0) - (config.maleAdults ?? 0)).toLocaleString()}`],
-            ["Total", initial?.total.toLocaleString() ?? "0", final.total.toLocaleString(), `${growthPct}%`],
-          ],
-        },
+        `Over ${config.years} years your herd is projected to ${netChange >= 0 ? "grow" : "shrink"} from ${initial.total.toLocaleString()} to ${final.total.toLocaleString()} — a ${netChange >= 0 ? "+" : ""}${netChange.toLocaleString()} head change (${growthPct}%).`,
+        `Breeding females: ${initial.adults.toLocaleString()} → ${final.adults.toLocaleString()} (${final.adults - initial.adults >= 0 ? "+" : ""}${(final.adults - initial.adults).toLocaleString()}).`,
+        `Adult bulls: ${(config.maleAdults ?? 0).toLocaleString()} → ${(final.maleAdults ?? 0).toLocaleString()} (${(final.maleAdults ?? 0) - (config.maleAdults ?? 0) >= 0 ? "+" : ""}${((final.maleAdults ?? 0) - (config.maleAdults ?? 0)).toLocaleString()}).`,
       ],
     });
   }
@@ -201,33 +144,33 @@ function buildExplanation(
 
     if (mape !== null) {
       const label = mape < 10 ? "excellent" : mape < 25 ? "moderate" : "poor";
-      accuracyLines.push(`MAPE: ${mape.toFixed(1)}% — ${label} accuracy. On average the model was ${mape.toFixed(1)}% off per year.`);
+      accuracyLines.push(`MAPE is ${mape.toFixed(1)}% — that is ${label} accuracy. On average the model was ${mape.toFixed(1)}% off per year.`);
     }
-    if (mae !== null) accuracyLines.push(`MAE: ${mae.toFixed(1)} head average difference per year.`);
-    if (rmse !== null) accuracyLines.push(`RMSE: ${rmse.toFixed(1)} — a much higher RMSE than MAE signals one or two bad years.`);
+    if (mae !== null) accuracyLines.push(`MAE is ${mae.toFixed(1)} head — the average difference between projected and actual count per year.`);
+    if (rmse !== null) accuracyLines.push(`RMSE is ${rmse.toFixed(1)}. A much higher RMSE than MAE signals that one or two years were particularly far off.`);
     if (bias !== null) {
-      const biasLabel = bias > 5 ? "over-projecting (optimistic)" : bias < -5 ? "under-projecting (conservative)" : "well-balanced";
-      accuracyLines.push(`Bias: ${bias > 0 ? "+" : ""}${bias.toFixed(1)} — ${biasLabel}.`);
+      const biasLabel = bias > 5 ? "over-projecting (the model is optimistic)" : bias < -5 ? "under-projecting (the model is conservative)" : "well-balanced with no significant lean";
+      accuracyLines.push(`Bias is ${bias > 0 ? "+" : ""}${bias.toFixed(1)} — the model is ${biasLabel}.`);
     }
     if (accuracyLines.length) sections.push({ title: "🎯 Model Accuracy", content: accuracyLines });
 
     sections.push({
-      title: "💡 What to Do",
+      title: "💡 What to Do Next",
       content: [
-        `MAPE < 10% — well-calibrated, keep your rates.`,
-        `MAPE 10–25% — adjust birth rate first, it has the biggest effect.`,
-        `MAPE > 25% — real-world conditions differ significantly (drought, disease). Review mortality & cull rates.`,
-        `Strong positive bias — model is too optimistic. Lower birth rate or raise mortality.`,
-        `Strong negative bias — conditions better than assumed. Consider reducing culling.`,
+        `If MAPE is below 10% — your model is well-calibrated, keep your current rates.`,
+        `If MAPE is between 10–25% — try adjusting the birth rate first, it has the largest single effect on herd size.`,
+        `If MAPE is above 25% — real-world conditions are significantly different from your assumptions (drought, disease outbreak). Review both mortality and cull rates.`,
+        `If bias is strongly positive — the model is too optimistic. Consider lowering the birth rate or raising the mortality rate.`,
+        `If bias is strongly negative — real conditions are better than assumed. Consider reducing the cull rate.`,
       ],
     });
   } else if (mode === "projection") {
     sections.push({
       title: "💡 How to Use This Projection",
       content: [
-        `Year 1–3 figures are most reliable for near-term budgeting.`,
-        `Beyond Year 5, treat projections as a planning range, not a guarantee.`,
-        `Log actual births, deaths, and sales in Event Logging, then check the Comparison Report for accuracy.`,
+        `Year 1 to 3 figures are the most reliable and suitable for near-term budgeting and planning.`,
+        `Beyond Year 5, treat projections as a planning range rather than a guarantee — small changes in birth rate or mortality compound over time.`,
+        `Log actual births, deaths, and sales in Event Logging, then open the Comparison Report to measure how accurate your model is.`,
       ],
     });
   }
@@ -243,76 +186,15 @@ function sectionsToPlainText(sections: Section[], title: string): string {
     "",
   ];
   for (const s of sections) {
-    lines.push(s.title.replace(/[^\w\s()%+\-.,♀♂]/g, "").trim());
+    lines.push(s.title.replace(/[^\w\s()%+\-.,♀♂:]/g, "").trim());
     lines.push("-".repeat(40));
     for (const item of s.content) {
-      if (typeof item === "string") {
-        lines.push(item);
-      } else {
-        // Render table as text
-        lines.push(item.headers.join(" | "));
-        lines.push("-".repeat(60));
-        for (const row of item.rows) lines.push(row.join(" | "));
-      }
+      lines.push(item);
       lines.push("");
     }
     lines.push("");
   }
   return lines.join("\n");
-}
-
-function RenderTable({ headers, rows, fullTable }: { headers: string[]; rows: string[][]; fullTable?: boolean }) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div className="space-y-1">
-      {fullTable && (
-        <button
-          className="flex items-center gap-1 text-xs text-primary hover:underline ml-auto"
-          onClick={() => setExpanded(e => !e)}
-        >
-          {expanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
-          {expanded ? "Collapse table" : "Expand full table"}
-        </button>
-      )}
-      <div
-        className={`overflow-x-auto rounded-md border border-border ${fullTable && !expanded ? "max-h-64 overflow-y-auto" : ""}`}
-      >
-        <table className="w-full text-xs">
-          <thead className="sticky top-0 z-10">
-            <tr className="bg-muted/90 backdrop-blur-sm border-b border-border">
-              {headers.map((h, i) => (
-                <th key={i} className="px-3 py-2 text-left font-semibold text-foreground whitespace-nowrap">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, ri) => (
-              <tr key={ri} className={ri % 2 === 0 ? "bg-background" : "bg-muted/20"}>
-                {row.map((cell, ci) => {
-                  const isLast = ci === row.length - 1;
-                  const isPositive = cell.startsWith("+");
-                  const isNegative = cell.startsWith("-");
-                  return (
-                    <td
-                      key={ci}
-                      className={`px-3 py-1.5 whitespace-nowrap font-medium
-                        ${isLast && isPositive ? "text-primary" : ""}
-                        ${isLast && isNegative ? "text-destructive" : ""}
-                        ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}
-                      `}
-                    >
-                      {cell}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
 }
 
 export function ExplainReport({ projections, config, actuals = [], mode = "projection" }: ExplainReportProps) {
@@ -345,14 +227,14 @@ export function ExplainReport({ projections, config, actuals = [], mode = "proje
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-display">
               <BookOpen className="h-5 w-5 text-primary" />
               {mode === "projection" ? "Your Herd Projection — Explained Simply" : "Comparison Report — Explained Simply"}
             </DialogTitle>
             <DialogDescription>
-              Plain-English breakdown by animal type — births, deaths, sold, culled per year.
+              Plain-English breakdown — animal types, numbers, births, deaths, sold, and culled.
             </DialogDescription>
           </DialogHeader>
 
@@ -369,12 +251,10 @@ export function ExplainReport({ projections, config, actuals = [], mode = "proje
                     {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
                   </button>
                   {isOpen && (
-                    <div className="px-4 py-3 space-y-3">
-                      {section.content.map((item, j) =>
-                        typeof item === "string"
-                          ? <p key={j} className="text-sm text-muted-foreground leading-relaxed">{item}</p>
-                          : <RenderTable key={j} headers={item.headers} rows={item.rows} fullTable={item.fullTable} />
-                      )}
+                    <div className="px-4 py-3 space-y-2">
+                      {section.content.map((item, j) => (
+                        <p key={j} className="text-sm text-muted-foreground leading-relaxed">{item}</p>
+                      ))}
                     </div>
                   )}
                 </div>
