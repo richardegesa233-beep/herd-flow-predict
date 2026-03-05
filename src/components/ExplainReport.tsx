@@ -169,7 +169,7 @@ function buildExplanation(
 
     sections.push({
       title: "📅 Year-by-Year Breakdown (All Animal Types)",
-      content: [{ type: "table", headers, rows }],
+      content: [{ type: "table", headers, rows, fullTable: true }],
     });
   }
 
