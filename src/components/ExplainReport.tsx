@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, Download, ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,7 +28,7 @@ interface ExplainReportProps {
 
 interface Section {
   title: string;
-  content: (string | { type: "table"; headers: string[]; rows: string[][] })[];
+  content: (string | { type: "table"; headers: string[]; rows: string[][]; fullTable?: boolean })[];
 }
 
 function buildExplanation(
@@ -59,10 +59,32 @@ function buildExplanation(
   if (initial && config) {
     const femaleYoung0 = initial.young - (initial.males ?? 0);
     const maleYoung0 = initial.males ?? 0;
+    const bullsN = config.maleAdults ?? 0;
+    const mort = config.mortalityRate ?? 0.05;
+    const cull = config.cullRate ?? 0.10;
+
+    // Plain-English narrative
+    const narrativeParts: string[] = [];
+    narrativeParts.push(
+      `You are starting with ${initial.total.toLocaleString()} cattle total: ` +
+      `${initial.adults.toLocaleString()} breeding females, ` +
+      `${bullsN.toLocaleString()} adult bulls, ` +
+      `${femaleYoung0.toLocaleString()} young females, and ` +
+      `${maleYoung0.toLocaleString()} young males.`
+    );
+    narrativeParts.push(
+      `Each year, roughly ${Math.round(initial.adults * cull)} breeding females will be culled (${(cull * 100).toFixed(0)}%), ` +
+      `${Math.round(initial.adults * mort)} will die from natural causes (${(mort * 100).toFixed(0)}% mortality), and ` +
+      `${bullsN > 0 ? `about ${Math.round(bullsN * 0.5)} of the ${bullsN} adult bulls will be sold (50%).` : "no bulls will be sold yet (no adult bulls at start)."}`
+    );
+    narrativeParts.push(
+      `Young animals mature into the adult pool after 2 years — young females join the breeders, young males join the bull pool before 50% are sold.`
+    );
 
     sections.push({
       title: "🐄 Starting Herd at Year 0",
       content: [
+        narrativeParts.join(" "),
         {
           type: "table",
           headers: ["Animal Type", "No.", "Sold/yr", "Culled/yr", "Died/yr"],
@@ -71,29 +93,29 @@ function buildExplanation(
               "♀ Breeding Females",
               initial.adults.toLocaleString(),
               "—",
-              `~${Math.round(initial.adults * (config.cullRate ?? 0.10)).toLocaleString()}`,
-              `~${Math.round(initial.adults * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+              `~${Math.round(initial.adults * cull).toLocaleString()}`,
+              `~${Math.round(initial.adults * mort).toLocaleString()}`,
             ],
             [
               "♂ Adult Bulls",
-              (config.maleAdults ?? 0).toLocaleString(),
-              `~${Math.round((config.maleAdults ?? 0) * 0.5).toLocaleString()} (50%)`,
+              bullsN.toLocaleString(),
+              `~${Math.round(bullsN * 0.5).toLocaleString()} (50%)`,
               "—",
-              `~${Math.round((config.maleAdults ?? 0) * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+              `~${Math.round(bullsN * mort).toLocaleString()}`,
             ],
             [
               "♀ Young Females",
               femaleYoung0.toLocaleString(),
               "—",
               "—",
-              `~${Math.round(femaleYoung0 * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+              `~${Math.round(femaleYoung0 * mort).toLocaleString()}`,
             ],
             [
               "♂ Young Males",
               maleYoung0.toLocaleString(),
               "—",
               "—",
-              `~${Math.round(maleYoung0 * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+              `~${Math.round(maleYoung0 * mort).toLocaleString()}`,
             ],
             [
               "Total",
@@ -102,7 +124,6 @@ function buildExplanation(
             ],
           ],
         },
-        `Only the ${initial.adults.toLocaleString()} adult females contribute to breeding. 50% of adult bulls are sold annually; young males mature into the bull pool after 2 years.`,
       ],
     });
   }
@@ -148,7 +169,7 @@ function buildExplanation(
 
     sections.push({
       title: "📅 Year-by-Year Breakdown (All Animal Types)",
-      content: [{ type: "table", headers, rows }],
+      content: [{ type: "table", headers, rows, fullTable: true }],
     });
   }
 
@@ -240,41 +261,56 @@ function sectionsToPlainText(sections: Section[], title: string): string {
   return lines.join("\n");
 }
 
-function RenderTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
+function RenderTable({ headers, rows, fullTable }: { headers: string[]; rows: string[][]; fullTable?: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div className="overflow-x-auto rounded-md border border-border">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="bg-muted/60">
-            {headers.map((h, i) => (
-              <th key={i} className="px-3 py-2 text-left font-semibold text-foreground whitespace-nowrap">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, ri) => (
-            <tr key={ri} className={ri % 2 === 0 ? "bg-background" : "bg-muted/20"}>
-              {row.map((cell, ci) => {
-                const isLast = ci === row.length - 1;
-                const isPositive = cell.startsWith("+");
-                const isNegative = cell.startsWith("-");
-                return (
-                  <td
-                    key={ci}
-                    className={`px-3 py-1.5 whitespace-nowrap font-medium
-                      ${isLast && isPositive ? "text-primary" : ""}
-                      ${isLast && isNegative ? "text-destructive" : ""}
-                      ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}
-                    `}
-                  >
-                    {cell}
-                  </td>
-                );
-              })}
+    <div className="space-y-1">
+      {fullTable && (
+        <button
+          className="flex items-center gap-1 text-xs text-primary hover:underline ml-auto"
+          onClick={() => setExpanded(e => !e)}
+        >
+          {expanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+          {expanded ? "Collapse table" : "Expand full table"}
+        </button>
+      )}
+      <div
+        className={`overflow-x-auto rounded-md border border-border ${fullTable && !expanded ? "max-h-64 overflow-y-auto" : ""}`}
+      >
+        <table className="w-full text-xs">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-muted/90 backdrop-blur-sm border-b border-border">
+              {headers.map((h, i) => (
+                <th key={i} className="px-3 py-2 text-left font-semibold text-foreground whitespace-nowrap">{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row, ri) => (
+              <tr key={ri} className={ri % 2 === 0 ? "bg-background" : "bg-muted/20"}>
+                {row.map((cell, ci) => {
+                  const isLast = ci === row.length - 1;
+                  const isPositive = cell.startsWith("+");
+                  const isNegative = cell.startsWith("-");
+                  return (
+                    <td
+                      key={ci}
+                      className={`px-3 py-1.5 whitespace-nowrap font-medium
+                        ${isLast && isPositive ? "text-primary" : ""}
+                        ${isLast && isNegative ? "text-destructive" : ""}
+                        ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}
+                      `}
+                    >
+                      {cell}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -337,7 +373,7 @@ export function ExplainReport({ projections, config, actuals = [], mode = "proje
                       {section.content.map((item, j) =>
                         typeof item === "string"
                           ? <p key={j} className="text-sm text-muted-foreground leading-relaxed">{item}</p>
-                          : <RenderTable key={j} headers={item.headers} rows={item.rows} />
+                          : <RenderTable key={j} headers={item.headers} rows={item.rows} fullTable={item.fullTable} />
                       )}
                     </div>
                   )}
