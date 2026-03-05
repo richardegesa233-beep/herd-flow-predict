@@ -28,7 +28,7 @@ interface ExplainReportProps {
 
 interface Section {
   title: string;
-  content: (string | { type: "table"; headers: string[]; rows: string[][] })[];
+  content: (string | { type: "table"; headers: string[]; rows: string[][]; fullTable?: boolean })[];
 }
 
 function buildExplanation(
