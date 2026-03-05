@@ -261,41 +261,56 @@ function sectionsToPlainText(sections: Section[], title: string): string {
   return lines.join("\n");
 }
 
-function RenderTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
+function RenderTable({ headers, rows, fullTable }: { headers: string[]; rows: string[][]; fullTable?: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div className="overflow-x-auto rounded-md border border-border">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="bg-muted/60">
-            {headers.map((h, i) => (
-              <th key={i} className="px-3 py-2 text-left font-semibold text-foreground whitespace-nowrap">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, ri) => (
-            <tr key={ri} className={ri % 2 === 0 ? "bg-background" : "bg-muted/20"}>
-              {row.map((cell, ci) => {
-                const isLast = ci === row.length - 1;
-                const isPositive = cell.startsWith("+");
-                const isNegative = cell.startsWith("-");
-                return (
-                  <td
-                    key={ci}
-                    className={`px-3 py-1.5 whitespace-nowrap font-medium
-                      ${isLast && isPositive ? "text-primary" : ""}
-                      ${isLast && isNegative ? "text-destructive" : ""}
-                      ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}
-                    `}
-                  >
-                    {cell}
-                  </td>
-                );
-              })}
+    <div className="space-y-1">
+      {fullTable && (
+        <button
+          className="flex items-center gap-1 text-xs text-primary hover:underline ml-auto"
+          onClick={() => setExpanded(e => !e)}
+        >
+          {expanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+          {expanded ? "Collapse table" : "Expand full table"}
+        </button>
+      )}
+      <div
+        className={`overflow-x-auto rounded-md border border-border ${fullTable && !expanded ? "max-h-64 overflow-y-auto" : ""}`}
+      >
+        <table className="w-full text-xs">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-muted/90 backdrop-blur-sm border-b border-border">
+              {headers.map((h, i) => (
+                <th key={i} className="px-3 py-2 text-left font-semibold text-foreground whitespace-nowrap">{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row, ri) => (
+              <tr key={ri} className={ri % 2 === 0 ? "bg-background" : "bg-muted/20"}>
+                {row.map((cell, ci) => {
+                  const isLast = ci === row.length - 1;
+                  const isPositive = cell.startsWith("+");
+                  const isNegative = cell.startsWith("-");
+                  return (
+                    <td
+                      key={ci}
+                      className={`px-3 py-1.5 whitespace-nowrap font-medium
+                        ${isLast && isPositive ? "text-primary" : ""}
+                        ${isLast && isNegative ? "text-destructive" : ""}
+                        ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}
+                      `}
+                    >
+                      {cell}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
