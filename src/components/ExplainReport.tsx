@@ -59,10 +59,32 @@ function buildExplanation(
   if (initial && config) {
     const femaleYoung0 = initial.young - (initial.males ?? 0);
     const maleYoung0 = initial.males ?? 0;
+    const bullsN = config.maleAdults ?? 0;
+    const mort = config.mortalityRate ?? 0.05;
+    const cull = config.cullRate ?? 0.10;
+
+    // Plain-English narrative
+    const narrativeParts: string[] = [];
+    narrativeParts.push(
+      `You are starting with ${initial.total.toLocaleString()} cattle total: ` +
+      `${initial.adults.toLocaleString()} breeding females, ` +
+      `${bullsN.toLocaleString()} adult bulls, ` +
+      `${femaleYoung0.toLocaleString()} young females, and ` +
+      `${maleYoung0.toLocaleString()} young males.`
+    );
+    narrativeParts.push(
+      `Each year, roughly ${Math.round(initial.adults * cull)} breeding females will be culled (${(cull * 100).toFixed(0)}%), ` +
+      `${Math.round(initial.adults * mort)} will die from natural causes (${(mort * 100).toFixed(0)}% mortality), and ` +
+      `${bullsN > 0 ? `about ${Math.round(bullsN * 0.5)} of the ${bullsN} adult bulls will be sold (50%).` : "no bulls will be sold yet (no adult bulls at start)."}`
+    );
+    narrativeParts.push(
+      `Young animals mature into the adult pool after 2 years — young females join the breeders, young males join the bull pool before 50% are sold.`
+    );
 
     sections.push({
       title: "🐄 Starting Herd at Year 0",
       content: [
+        narrativeParts.join(" "),
         {
           type: "table",
           headers: ["Animal Type", "No.", "Sold/yr", "Culled/yr", "Died/yr"],
@@ -71,29 +93,29 @@ function buildExplanation(
               "♀ Breeding Females",
               initial.adults.toLocaleString(),
               "—",
-              `~${Math.round(initial.adults * (config.cullRate ?? 0.10)).toLocaleString()}`,
-              `~${Math.round(initial.adults * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+              `~${Math.round(initial.adults * cull).toLocaleString()}`,
+              `~${Math.round(initial.adults * mort).toLocaleString()}`,
             ],
             [
               "♂ Adult Bulls",
-              (config.maleAdults ?? 0).toLocaleString(),
-              `~${Math.round((config.maleAdults ?? 0) * 0.5).toLocaleString()} (50%)`,
+              bullsN.toLocaleString(),
+              `~${Math.round(bullsN * 0.5).toLocaleString()} (50%)`,
               "—",
-              `~${Math.round((config.maleAdults ?? 0) * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+              `~${Math.round(bullsN * mort).toLocaleString()}`,
             ],
             [
               "♀ Young Females",
               femaleYoung0.toLocaleString(),
               "—",
               "—",
-              `~${Math.round(femaleYoung0 * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+              `~${Math.round(femaleYoung0 * mort).toLocaleString()}`,
             ],
             [
               "♂ Young Males",
               maleYoung0.toLocaleString(),
               "—",
               "—",
-              `~${Math.round(maleYoung0 * (config.mortalityRate ?? 0.05)).toLocaleString()}`,
+              `~${Math.round(maleYoung0 * mort).toLocaleString()}`,
             ],
             [
               "Total",
@@ -102,7 +124,6 @@ function buildExplanation(
             ],
           ],
         },
-        `Only the ${initial.adults.toLocaleString()} adult females contribute to breeding. 50% of adult bulls are sold annually; young males mature into the bull pool after 2 years.`,
       ],
     });
   }
