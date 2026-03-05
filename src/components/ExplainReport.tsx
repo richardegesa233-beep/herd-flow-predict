@@ -373,7 +373,7 @@ export function ExplainReport({ projections, config, actuals = [], mode = "proje
                       {section.content.map((item, j) =>
                         typeof item === "string"
                           ? <p key={j} className="text-sm text-muted-foreground leading-relaxed">{item}</p>
-                          : <RenderTable key={j} headers={item.headers} rows={item.rows} />
+                          : <RenderTable key={j} headers={item.headers} rows={item.rows} fullTable={item.fullTable} />
                       )}
                     </div>
                   )}
