@@ -31,6 +31,63 @@ interface Section {
   content: string[];
 }
 
+function buildYearSentence(
+  curr: HerdData,
+  prev: HerdData,
+  next: HerdData | undefined,
+  index: number,
+  projections: HerdData[],
+  config: ExplainReportProps["config"]
+): string {
+  const net = curr.total - prev.total;
+  const pct = prev.total > 0 ? ((net / prev.total) * 100) : 0;
+  const birthRate = config?.birthRate ?? 0.85;
+  const cullRate = config?.cullRate ?? 0.10;
+  const mort = config?.mortalityRate ?? 0.05;
+
+  // Detect Fibonacci jump: maturation kicks in — young from 2 years ago become breeders
+  const isFibJump = index >= 2 && curr.adults > prev.adults * 1.08;
+  // Detect slow start: no young yet to mature
+  const isSlowStart = index <= 2 && Math.abs(pct) < 3;
+  // Detect sustainability: culls roughly match births
+  const cullsNearBirths = Math.abs(curr.culled - curr.femaleBirths) < curr.femaleBirths * 0.25;
+  // Detect growth acceleration
+  const prevPct = index >= 2 ? ((projections[index].total - projections[index - 1].total) / projections[index - 1].total) * 100 : 0;
+  const isAccelerating = index >= 3 && pct > prevPct * 1.3 && pct > 3;
+  // Detect decline
+  const isDecline = net < 0;
+  // Detect plateau
+  const isPlateau = Math.abs(pct) < 1;
+
+  const totalStr = curr.total.toLocaleString();
+  const netStr = Math.abs(net).toLocaleString();
+  const pctStr = Math.abs(pct).toFixed(1);
+
+  let sentence = "";
+
+  if (isFibJump) {
+    const newBreeders = curr.adults - prev.adults;
+    sentence = `"The Fibonacci Jump!" Your Year ${curr.year - 2} calves have now matured into the breeding pool — adding roughly ${Math.max(0, newBreeders).toLocaleString()} new breeders. This drives ${curr.femaleBirths + curr.maleBirths} new births, pushing the herd to ${totalStr} (${net > 0 ? "+" : ""}${netStr} head, ${pctStr}% ${net > 0 ? "growth" : "change"}).`;
+  } else if (isSlowStart && index === 1) {
+    sentence = `"The Herd Remains Stable." Your initial young are still maturing — births are coming only from your original ${prev.adults.toLocaleString()} breeders (${curr.femaleBirths + curr.maleBirths} calves born). Total herd: ${totalStr}.`;
+  } else if (isSlowStart && index === 2) {
+    sentence = `"Growth Is Slow But Steady." The first batch of calves is growing but not yet ready to breed. ${curr.femaleBirths + curr.maleBirths} births this year, ${curr.deaths} deaths, ${curr.culled} culled — herd holds at ${totalStr}.`;
+  } else if (cullsNearBirths && !isDecline && !isFibJump) {
+    sentence = `"Sustainability Check." Your ${(cullRate * 100).toFixed(0)}% cull rate (${curr.culled} animals) is closely matched by ${curr.femaleBirths + curr.maleBirths} new births — the herd is maintaining itself at ${totalStr} with ${net >= 0 ? "+" : ""}${netStr} head change.`;
+  } else if (isDecline) {
+    sentence = `"Herd Contracting." Deaths (${curr.deaths}) and culls (${curr.culled}) outpaced ${curr.femaleBirths + curr.maleBirths} births this year. The herd dropped ${netStr} head (${pctStr}%) to ${totalStr}. Consider reviewing your ${(mort * 100).toFixed(0)}% mortality or ${(cullRate * 100).toFixed(0)}% cull rate.`;
+  } else if (isAccelerating) {
+    sentence = `"Accelerating Growth!" Maturing young are swelling the breeding pool — ${curr.femaleBirths + curr.maleBirths} births this year versus ${curr.deaths + curr.culled} leaving. Herd jumps ${netStr} head (+${pctStr}%) to ${totalStr}.`;
+  } else if (isPlateau) {
+    sentence = `"Holding Steady." Births (${curr.femaleBirths + curr.maleBirths}) and losses (${curr.deaths} deaths + ${curr.culled} culled + ${curr.bullsSold ?? 0} bulls sold) are nearly balanced. Total remains around ${totalStr}.`;
+  } else {
+    const direction = net > 0 ? "grows by" : "shrinks by";
+    sentence = `The herd ${direction} ${netStr} head (${pctStr}%) to ${totalStr} — ${curr.femaleBirths.toLocaleString()} ♀ & ${curr.maleBirths.toLocaleString()} ♂ born, ${curr.deaths.toLocaleString()} died, ${curr.culled.toLocaleString()} culled, ${(curr.bullsSold ?? 0).toLocaleString()} bulls sold.`;
+  }
+
+  return sentence;
+}
+
 function buildExplanation(
   projections: HerdData[],
   config: ExplainReportProps["config"],
@@ -76,11 +133,11 @@ function buildExplanation(
     sections.push({
       title: "🐄 Starting Herd at Year 0",
       content: [
-        `You are starting with ${initial.total.toLocaleString()} cattle in total.`,
-        `♀ Breeding Females: ${initial.adults.toLocaleString()} animals. Each year roughly ${estFemaleBirths.toLocaleString()} female calves and ${estMaleBirths.toLocaleString()} male calves will be born (${(birthRate * 100).toFixed(0)}% birth rate, split 50/50). About ${estCulled.toLocaleString()} breeders will be culled (${(cull * 100).toFixed(0)}%) and ${estFemaleDeaths.toLocaleString()} will die from natural causes (${(mort * 100).toFixed(0)}% mortality).`,
-        `♂ Adult Bulls: ${bullsN.toLocaleString()} animals. About ${estBullsSold.toLocaleString()} bulls will be sold each year (50% sold annually) and ${estBullDeaths.toLocaleString()} will die from natural causes.`,
-        `♀ Young Females: ${femaleYoung0.toLocaleString()} animals. About ${estFemaleYoungDeaths.toLocaleString()} will die each year. After 2 years they mature into the breeding female pool.`,
-        `♂ Young Males: ${maleYoung0.toLocaleString()} animals. About ${estMaleYoungDeaths.toLocaleString()} will die each year. After 2 years they mature into the bull pool, then 50% of those bulls are sold.`,
+        `You are starting with ${initial.total.toLocaleString()} cattle in total: ${initial.adults.toLocaleString()} breeding females, ${bullsN.toLocaleString()} adult bulls, ${femaleYoung0.toLocaleString()} young females, and ${maleYoung0.toLocaleString()} young males.`,
+        `♀ Breeding Females (${initial.adults.toLocaleString()}): These are the engine of your herd. At a ${(birthRate * 100).toFixed(0)}% birth rate they produce roughly ${estFemaleBirths.toLocaleString()} female calves and ${estMaleBirths.toLocaleString()} male calves every year. Each year about ${estCulled.toLocaleString()} will be culled (${(cull * 100).toFixed(0)}%) and ${estFemaleDeaths.toLocaleString()} will die from natural causes (${(mort * 100).toFixed(0)}% mortality).`,
+        `♂ Adult Bulls (${bullsN.toLocaleString()}): 50% are sold annually — so about ${estBullsSold.toLocaleString()} bulls leave the herd each year. Of those that stay, roughly ${estBullDeaths.toLocaleString()} will die from natural causes.`,
+        `♀ Young Females (${femaleYoung0.toLocaleString()}): These are calves and yearlings not yet breeding. Roughly ${estFemaleYoungDeaths.toLocaleString()} will die each year. After 2 years they mature and join the breeding female pool — this is the "Fibonacci Jump" that drives future growth.`,
+        `♂ Young Males (${maleYoung0.toLocaleString()}): Similar pipeline — roughly ${estMaleYoungDeaths.toLocaleString()} die annually. After 2 years they graduate into the bull pool, then the 50% annual sales rule applies immediately.`,
       ],
     });
   }
@@ -98,21 +155,16 @@ function buildExplanation(
     ],
   });
 
-  // ─── Year-by-year prose highlights ───
+  // ─── Year-by-year enriched prose ───
   if (projections.length > 1) {
     const highlights: string[] = [];
 
     for (let i = 1; i < projections.length; i++) {
       const prev = projections[i - 1];
       const curr = projections[i];
-      const net = curr.total - prev.total;
-      const pct = prev.total > 0 ? ((net / prev.total) * 100).toFixed(1) : "0";
-      const direction = net > 0 ? "grew by" : net < 0 ? "shrank by" : "stayed flat at";
-      const change = net !== 0 ? `${Math.abs(net).toLocaleString()} head (${Math.abs(Number(pct))}%)` : `${curr.total.toLocaleString()} head`;
-
-      highlights.push(
-        `Year ${curr.year}: The herd ${direction} ${change} — ${curr.femaleBirths.toLocaleString()} female & ${curr.maleBirths.toLocaleString()} male births, ${curr.deaths.toLocaleString()} deaths, ${curr.culled.toLocaleString()} culled, ${(curr.bullsSold ?? 0).toLocaleString()} bulls sold. Total: ${curr.total.toLocaleString()}.`
-      );
+      const next = projections[i + 1];
+      const sentence = buildYearSentence(curr, prev, next, i, projections, config);
+      highlights.push(`Year ${curr.year}: ${sentence}`);
     }
 
     sections.push({
@@ -252,9 +304,20 @@ export function ExplainReport({ projections, config, actuals = [], mode = "proje
                   </button>
                   {isOpen && (
                     <div className="px-4 py-3 space-y-2">
-                      {section.content.map((item, j) => (
-                        <p key={j} className="text-sm text-muted-foreground leading-relaxed">{item}</p>
-                      ))}
+                      {section.content.map((item, j) => {
+                        // Bold quoted labels like "The Fibonacci Jump!"
+                        const quotedMatch = item.match(/^(".*?")(.*)/s);
+                        return (
+                          <p key={j} className="text-sm text-muted-foreground leading-relaxed">
+                            {quotedMatch ? (
+                              <>
+                                <span className="font-semibold text-foreground">{quotedMatch[1]}</span>
+                                {quotedMatch[2]}
+                              </>
+                            ) : item}
+                          </p>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
