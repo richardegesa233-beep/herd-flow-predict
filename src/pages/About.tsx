@@ -63,7 +63,7 @@ const About = () => {
                 {[
                   "Design a card-based, responsive web interface with tab navigation for clean aesthetic and intuitive flow across all views.",
                   "Develop the Projection Dashboard UI that collects required mathematical parameters and visualizes time-series data using dynamic charts.",
-                  "Construct the Event Logging Interface with structured forms for Births, Sales, and Deaths, plus live herd tracking.",
+                  "Build the Event Simulation engine with stochastic models for births, sales, and deaths using probabilistic event logic.",
                   "Implement the Model Validation Report UI with accuracy metrics (MAE/MAPE) and dual charts for Projected vs. Actual counts.",
                 ].map((obj, i) => (
                   <div key={i} className="flex gap-3 items-start">
@@ -98,7 +98,7 @@ const About = () => {
                   },
                   {
                     title: "Seamless Integration",
-                    desc: "Unifying Projection, Event Logging, and Validation features under a single aesthetic framework.",
+                    desc: "Unifying Projection, Event Simulation, and Validation features under a single aesthetic framework.",
                     icon: Layers,
                   },
                 ].map((item) => (

@@ -222,7 +222,7 @@ function buildExplanation(
       content: [
         `Year 1 to 3 figures are the most reliable and suitable for near-term budgeting and planning.`,
         `Beyond Year 5, treat projections as a planning range rather than a guarantee — small changes in birth rate or mortality compound over time.`,
-        `Log actual births, deaths, and sales in Event Logging, then open the Comparison Report to measure how accurate your model is.`,
+        `Run the Event Simulation to generate stochastic actual data, then open the Comparison Report to measure how accurate your model is.`,
       ],
     });
   }

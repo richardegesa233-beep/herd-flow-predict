@@ -25,59 +25,80 @@ export function usePdfExport() {
 
     try {
       const element = document.getElementById(elementId);
-      if (!element) {
-        throw new Error("Element not found");
-      }
+      if (!element) throw new Error("Element not found");
 
-      // Temporarily expand element for better capture
-      const origMaxHeight = element.style.maxHeight;
-      const origOverflow = element.style.overflow;
+      // Detect current theme
+      const isDark = document.documentElement.classList.contains("dark");
+
+      // Temporarily expand all scroll containers for full capture
+      const scrollContainers = element.querySelectorAll<HTMLElement>('[class*="max-h-"], [class*="overflow"]');
+      const origStyles: { el: HTMLElement; maxHeight: string; overflow: string; overflowY: string }[] = [];
+
+      origStyles.push({ el: element, maxHeight: element.style.maxHeight, overflow: element.style.overflow, overflowY: element.style.overflowY });
       element.style.maxHeight = "none";
       element.style.overflow = "visible";
+      element.style.overflowY = "visible";
 
+      scrollContainers.forEach(el => {
+        origStyles.push({ el, maxHeight: el.style.maxHeight, overflow: el.style.overflow, overflowY: el.style.overflowY });
+        el.style.maxHeight = "none";
+        el.style.overflow = "visible";
+        el.style.overflowY = "visible";
+      });
+
+      // Brief delay for repaint
+      await new Promise(r => setTimeout(r, 200));
+
+      // Capture with background matching current theme
+      const bgColor = isDark ? "#1a1510" : "#faf8f5";
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: "#faf8f5",
+        backgroundColor: bgColor,
         windowWidth: 1200,
       });
 
-      element.style.maxHeight = origMaxHeight;
-      element.style.overflow = origOverflow;
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
+      // Restore scroll styles
+      origStyles.forEach(({ el, maxHeight, overflow, overflowY }) => {
+        el.style.maxHeight = maxHeight;
+        el.style.overflow = overflow;
+        el.style.overflowY = overflowY;
       });
 
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 15;
       const contentWidth = pageWidth - (margin * 2);
 
+      // Theme-aware header colors
+      const headerBg = isDark ? { r: 26, g: 21, b: 16 } : { r: 59, g: 102, b: 67 };
+      const headerText = { r: 255, g: 255, b: 255 };
+      const accentBar = isDark ? { r: 180, g: 160, b: 100 } : { r: 200, g: 180, b: 120 };
+      const footerText = isDark ? { r: 160, g: 150, b: 140 } : { r: 140, g: 140, b: 140 };
+      const footerLine = isDark ? { r: 60, g: 50, b: 40 } : { r: 200, g: 200, b: 200 };
+
       // ─── Header ───
-      pdf.setFillColor(59, 102, 67);
+      pdf.setFillColor(headerBg.r, headerBg.g, headerBg.b);
       pdf.rect(0, 0, pageWidth, 38, "F");
-      
-      pdf.setTextColor(255, 255, 255);
+
+      pdf.setTextColor(headerText.r, headerText.g, headerText.b);
       pdf.setFontSize(24);
       pdf.setFont("helvetica", "bold");
       pdf.text(title, margin, 18);
-      
+
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
       pdf.text(subtitle, margin, 28);
-      
-      const dateStr = new Date().toLocaleDateString("en-US", { 
-        year: "numeric", month: "long", day: "numeric" 
+
+      const dateStr = new Date().toLocaleDateString("en-US", {
+        year: "numeric", month: "long", day: "numeric"
       });
       pdf.text(`Generated: ${dateStr}`, pageWidth - margin, 28, { align: "right" });
 
-      // Thin accent bar under header
-      pdf.setFillColor(200, 180, 120);
+      // Accent bar
+      pdf.setFillColor(accentBar.r, accentBar.g, accentBar.b);
       pdf.rect(0, 38, pageWidth, 1.5, "F");
 
       // ─── Content ───
@@ -100,37 +121,21 @@ export function usePdfExport() {
         croppedCanvas.width = canvas.width;
         croppedCanvas.height = sourceHeight;
         const ctx = croppedCanvas.getContext("2d");
-        
+
         if (ctx) {
-          ctx.drawImage(
-            canvas,
-            0, sourceY,
-            canvas.width, sourceHeight,
-            0, 0,
-            canvas.width, sourceHeight
-          );
-          
+          ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
           const croppedImgData = croppedCanvas.toDataURL("image/png");
           pdf.addImage(croppedImgData, "PNG", margin, currentY, imgWidth, drawHeight);
         }
 
-        // ─── Footer on every page ───
-        pdf.setDrawColor(200, 200, 200);
+        // ─── Footer ───
+        pdf.setDrawColor(footerLine.r, footerLine.g, footerLine.b);
         pdf.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
-        
-        pdf.setTextColor(140, 140, 140);
+
+        pdf.setTextColor(footerText.r, footerText.g, footerText.b);
         pdf.setFontSize(8);
-        pdf.text(
-          "FHPS • Fibonacci-Based Herd Projection System",
-          margin,
-          pageHeight - 8
-        );
-        pdf.text(
-          `Page ${pageNum}`,
-          pageWidth - margin,
-          pageHeight - 8,
-          { align: "right" }
-        );
+        pdf.text("FHPS • Fibonacci-Based Herd Projection System", margin, pageHeight - 8);
+        pdf.text(`Page ${pageNum}`, pageWidth - margin, pageHeight - 8, { align: "right" });
 
         remainingHeight -= drawHeight;
         sourceY += sourceHeight;

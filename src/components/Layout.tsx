@@ -1,20 +1,14 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, LogOut } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { LogOut, Menu, X, Leaf } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 interface LayoutProps {
@@ -22,11 +16,10 @@ interface LayoutProps {
 }
 
 const navLinks = [
-  { href: "/", label: "HOME" },
-  { href: "/herd-projection", label: "HERD PROJECTION" },
-  { href: "/event-logging", label: "EVENT LOGGING" },
-  { href: "/comparison-report", label: "COMPARISON REPORT" },
-  
+  { href: "/", label: "Home" },
+  { href: "/herd-projection", label: "Projection" },
+  { href: "/event-simulation", label: "Simulation" },
+  { href: "/comparison-report", label: "Analysis" },
 ];
 
 export const Layout = ({ children }: LayoutProps) => {
@@ -34,6 +27,7 @@ export const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -42,36 +36,48 @@ export const Layout = ({ children }: LayoutProps) => {
     navigate("/");
   };
 
+  const handleNavClick = (href: string, e: React.MouseEvent) => {
+    if (href !== "/" && !user) {
+      e.preventDefault();
+      navigate("/auth");
+    }
+    setMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-background border-b border-border sticky top-0 z-50">
-        <div className="container max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-8">
+      <header className="glass-strong sticky top-0 z-50 border-b border-border/50">
+        <div className="container max-w-7xl mx-auto px-4 py-2.5">
+          <div className="flex items-center justify-between gap-4">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 shrink-0">
-              <span className="font-display text-2xl font-bold tracking-wider text-primary">
-                FHPS
-              </span>
-              <div className="hidden sm:block text-xs leading-tight text-muted-foreground">
-                <div>FIBONACCI-BASED</div>
-                <div>HERD PROJECTION</div>
-                <div>SYSTEM</div>
+            <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+              <div className="h-9 w-9 rounded-xl gradient-hero flex items-center justify-center shadow-sm group-hover:shadow-glow transition-shadow duration-300">
+                <Leaf className="h-4.5 w-4.5 text-primary-foreground" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-base font-bold tracking-tight text-foreground leading-none">
+                  FHPS
+                </span>
+                <span className="text-[9px] text-muted-foreground tracking-widest uppercase leading-tight hidden sm:block">
+                  Herd Projection
+                </span>
               </div>
             </Link>
 
-            {/* Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-0.5 bg-muted/40 rounded-full px-1 py-0.5 border border-border/40">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     to={link.href}
-                    className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    onClick={(e) => handleNavClick(link.href, e)}
+                    className={`px-4 py-1.5 text-[13px] font-medium rounded-full transition-all duration-200 ${
                       isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-background/80"
                     }`}
                   >
                     {link.label}
@@ -80,67 +86,58 @@ export const Layout = ({ children }: LayoutProps) => {
               })}
             </nav>
 
-            {/* Search, Theme & User */}
-            <div className="flex items-center gap-2">
-              <div className="hidden md:flex relative">
-                <Input
-                  type="text"
-                  placeholder="SEARCH"
-                  className="w-48 pr-10 bg-muted/50 border-transparent focus:border-primary"
-                />
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              </div>
+            {/* Actions */}
+            <div className="flex items-center gap-1.5">
               <ThemeToggle />
               {user ? (
-                <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline text-sm text-muted-foreground">{user.name}</span>
-                  <Button variant="ghost" size="icon" onClick={() => setShowLogoutDialog(true)} className="h-9 w-9 rounded-full" aria-label="Logout">
-                    <LogOut className="h-4 w-4" />
+                <div className="flex items-center gap-1.5">
+                  <span className="hidden sm:inline text-xs font-medium text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/40">
+                    {user.name}
+                  </span>
+                  <Button variant="ghost" size="icon" onClick={() => setShowLogoutDialog(true)} className="h-8 w-8 rounded-full" aria-label="Logout">
+                    <LogOut className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               ) : (
                 <Link to="/auth">
-                  <Button variant="default" size="sm" className="gap-2">
+                  <Button variant="default" size="sm" className="text-xs font-semibold rounded-full px-5 shadow-sm">
                     Sign In
                   </Button>
                 </Link>
               )}
-            </div>
-
-            {/* Mobile Navigation */}
-            <div className="lg:hidden">
-              <Link
-                to="/"
-                className={`px-3 py-1.5 text-xs font-medium rounded-full ${
-                  location.pathname === "/"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground"
-                }`}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden h-8 w-8 rounded-full"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                HOME
-              </Link>
+                {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              </Button>
             </div>
           </div>
 
           {/* Mobile Nav */}
-          <nav className="lg:hidden flex items-center gap-2 mt-4 overflow-x-auto pb-2">
-            {navLinks.slice(1).map((link) => {
-              const isActive = location.pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-all ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
+          {mobileMenuOpen && (
+            <nav className="lg:hidden flex flex-col gap-0.5 mt-2.5 pb-2 border-t border-border/40 pt-2.5 animate-fade-in">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    onClick={(e) => handleNavClick(link.href, e)}
+                    className={`px-4 py-2.5 text-sm font-medium rounded-xl transition-all ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
         </div>
       </header>
 
@@ -164,10 +161,21 @@ export const Layout = ({ children }: LayoutProps) => {
       <main>{children}</main>
 
       {/* Footer */}
-      <footer className="bg-muted/50 py-8 mt-12">
-        <div className="container max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p className="font-display font-semibold">FHPS • Fibonacci-Based Herd Projection System</p>
-          <p className="mt-1">For farmers, farm managers, and agricultural students</p>
+      <footer className="border-t border-border/40 py-10 mt-16">
+        <div className="container max-w-7xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-7 w-7 rounded-lg gradient-hero flex items-center justify-center">
+                <Leaf className="h-3.5 w-3.5 text-primary-foreground" />
+              </div>
+              <span className="text-sm font-semibold text-foreground/80">FHPS</span>
+              <span className="text-xs text-muted-foreground">•</span>
+              <span className="text-xs text-muted-foreground">Fibonacci-Based Herd Projection System</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              For farmers, farm managers & agricultural students
+            </p>
+          </div>
         </div>
       </footer>
     </div>

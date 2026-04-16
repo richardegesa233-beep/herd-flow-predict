@@ -1,22 +1,28 @@
-import { Layout } from "@/components/Layout";
 import { useState } from "react";
 import { HerdInputForm } from "@/components/HerdInputForm";
 import { ProjectionTable } from "@/components/ProjectionTable";
 import { ProjectionChart } from "@/components/ProjectionChart";
 import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { usePdfExport } from "@/hooks/usePdfExport";
 import { HerdData, calculateHerdProjection, formatNumber } from "@/lib/herdCalculations";
 import { Anvil, BarChart3, Crosshair, Clock, FileDown, Loader2, RotateCcw, LineChart, TableProperties } from "lucide-react";
 import { toast } from "sonner";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { ExplainReport } from "@/components/ExplainReport";
 import { ProjectionHistory, ProjectionSnapshot } from "@/components/ProjectionHistory";
 import { Card, CardContent } from "@/components/ui/card";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const DEFAULT = {
   femaleAdults: 60,
@@ -35,17 +41,10 @@ function generate(c: typeof DEFAULT) {
   );
 }
 
-const HerdProjection = () => {
-  const [config, setConfig] = useLocalStorage<typeof DEFAULT>("herd-config", DEFAULT);
-  const [projections, setProjections] = useLocalStorage<HerdData[]>("herd-projections", []);
-  const [hasGenerated, setHasGenerated] = useState(() => {
-    try {
-      const session = window.localStorage.getItem("fhps-session");
-      const prefix = session ? `fhps-${JSON.parse(session).id}` : "fhps-guest";
-      const saved = window.localStorage.getItem(`${prefix}-herd-projections`);
-      return saved ? JSON.parse(saved).length > 0 : false;
-    } catch { return false; }
-  });
+const HerdProjectionApp = () => {
+  const [config, setConfig] = useState(DEFAULT);
+  const [projections, setProjections] = useState<HerdData[]>([]);
+  const [hasGenerated, setHasGenerated] = useState(false);
   const { exportToPdf, isExporting } = usePdfExport();
 
   const handleGenerate = (data: typeof DEFAULT) => {
@@ -66,13 +65,6 @@ const HerdProjection = () => {
     setProjections(snapshot.projections);
     setConfig(snapshot.config);
     setHasGenerated(true);
-    if (snapshot.eventRecords) {
-      try {
-        const session = window.localStorage.getItem("fhps-session");
-        const prefix = session ? `fhps-${JSON.parse(session).id}` : "fhps-guest";
-        window.localStorage.setItem(`${prefix}-event-records`, JSON.stringify(snapshot.eventRecords));
-      } catch {}
-    }
   };
 
   const handleExport = async () => {
@@ -95,31 +87,45 @@ const HerdProjection = () => {
     : "0";
 
   return (
-    <Layout>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-background border-b border-border sticky top-0 z-50">
+        <div className="container max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Anvil className="h-7 w-7 text-primary" />
+            <div>
+              <span className="font-display text-2xl font-bold tracking-wider text-primary">FHPS</span>
+              <div className="hidden sm:block text-xs leading-tight text-muted-foreground ml-3">
+                <span>Fibonacci-Based Herd Projection System</span>
+              </div>
+            </div>
+          </div>
+          <ThemeToggle />
+        </div>
+      </header>
+
+      {/* Main */}
       <main className="container max-w-7xl mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 animate-slide-up">
+        {/* Title + Actions */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-slide-up">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-1">Projection Engine</p>
-            <h1 className="text-3xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Herd Projection
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-3xl font-display font-bold text-foreground mb-2">Herd Projection</h1>
+            <p className="text-muted-foreground">
               Configure your herd to generate Fibonacci-based growth projections.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
-                  <RotateCcw className="h-3.5 w-3.5" /> Reset
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <RotateCcw className="h-4 w-4" /> Reset
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Reset Everything?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will clear all current inputs, projections, and chart data back to defaults.
+                    This will clear all current inputs, projections, and chart data back to defaults. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -128,7 +134,11 @@ const HerdProjection = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <ProjectionHistory currentProjections={projections} currentConfig={config} onLoad={handleLoadSnapshot} />
+            <ProjectionHistory
+              currentProjections={projections}
+              currentConfig={config}
+              onLoad={handleLoadSnapshot}
+            />
             {hasGenerated && (
               <>
                 <ExplainReport projections={projections} config={config} mode="projection" />
@@ -141,9 +151,9 @@ const HerdProjection = () => {
           </div>
         </div>
 
-        {/* Stats Row */}
+        {/* Stats — only show after generation */}
         {hasGenerated && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="animate-slide-up stagger-1">
               <StatCard title="Starting Herd" value={formatNumber(first?.total || 0)} subtitle="Total cattle" icon={Anvil} variant="primary" />
             </div>
@@ -159,29 +169,31 @@ const HerdProjection = () => {
           </div>
         )}
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Form + Results */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 animate-slide-in-left">
             <HerdInputForm key={JSON.stringify(config)} onSubmit={handleGenerate} initialValues={config} />
           </div>
           <div className="lg:col-span-2 space-y-6" id="projection-report">
             {hasGenerated ? (
               <>
-                <div className="animate-slide-in-right"><ProjectionChart data={projections} /></div>
-                <div className="animate-slide-up stagger-2"><ProjectionTable data={projections} /></div>
+                <div className="animate-slide-in-right">
+                  <ProjectionChart data={projections} />
+                </div>
+                <div className="animate-slide-up stagger-2">
+                  <ProjectionTable data={projections} />
+                </div>
               </>
             ) : (
-              <Card className="shadow-card border-border/50">
+              <Card className="shadow-card">
                 <CardContent className="flex flex-col items-center justify-center py-24 text-center space-y-4">
-                  <div className="h-16 w-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-2">
-                    <div className="flex gap-2 text-muted-foreground/40">
-                      <LineChart className="h-7 w-7" />
-                      <TableProperties className="h-7 w-7" />
-                    </div>
+                  <div className="flex gap-3 text-muted-foreground/40">
+                    <LineChart className="h-12 w-12" />
+                    <TableProperties className="h-12 w-12" />
                   </div>
-                  <h3 className="text-xl font-semibold text-muted-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>No Projection Yet</h3>
-                  <p className="text-sm text-muted-foreground/70 max-w-md leading-relaxed">
-                    Configure your herd parameters on the left and hit <strong className="text-foreground">Generate Projection</strong> to see your growth chart and detailed table here.
+                  <h3 className="text-xl font-display font-semibold text-muted-foreground">No Projection Yet</h3>
+                  <p className="text-sm text-muted-foreground/70 max-w-md">
+                    Configure your herd parameters on the left and hit <strong>Generate Projection</strong> to see your growth chart and detailed table here.
                   </p>
                 </CardContent>
               </Card>
@@ -189,8 +201,16 @@ const HerdProjection = () => {
           </div>
         </div>
       </main>
-    </Layout>
+
+      {/* Footer */}
+      <footer className="bg-muted/50 py-8 mt-12">
+        <div className="container max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
+          <p className="font-display font-semibold">FHPS • Fibonacci-Based Herd Projection System</p>
+          <p className="mt-1">For farmers, farm managers, and agricultural students</p>
+        </div>
+      </footer>
+    </div>
   );
 };
 
-export default HerdProjection;
+export default HerdProjectionApp;

@@ -1,73 +1,72 @@
-# Welcome to your Lovable project
+# Herd Flow Predict
 
-## Project info
+A web application for predicting and visualizing herd flow projections, including data input forms, charts, and reports.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- Input forms for herd data and actual data
+- Projection charts and tables
+- Variance analysis
+- Comparison reports
+- Event logging
+- PDF export functionality
+- Responsive design with dark/light theme toggle
 
-There are several ways of editing your application.
+## Technologies Used
 
-**Use Lovable**
+- **Vite**: Build tool and development server
+- **TypeScript**: Type-safe JavaScript
+- **React**: UI library
+- **shadcn/ui**: Component library
+- **Tailwind CSS**: Utility-first CSS framework
+- **Recharts**: Charting library
+- **React Hook Form**: Form handling
+- **Zod**: Schema validation
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Installation
 
-Changes made via Lovable will be committed automatically to this repo.
+1. Clone the repository:
+   ```sh
+   git clone <YOUR_GIT_URL>
+   ```
 
-**Use your preferred IDE**
+2. Navigate to the project directory:
+   ```sh
+   cd herd-flow-predict
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+3. Install dependencies:
+   ```sh
+   npm install
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+4. Start the development server:
+   ```sh
+   npm run dev
+   ```
 
-Follow these steps:
+## Usage
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Open the app in your browser (usually at `http://localhost:5173`)
+- Use the forms to input herd data
+- View projections in charts and tables
+- Generate reports and export to PDF
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Scripts
 
-# Step 3: Install the necessary dependencies.
-npm i
+- `npm run dev`: Start development server
+- `npm run build`: Build for production
+- `npm run preview`: Preview production build
+- `npm run test`: Run tests
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## Contributing
 
-**Edit a file directly in GitHub**
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## License
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This project is licensed under the MIT License.

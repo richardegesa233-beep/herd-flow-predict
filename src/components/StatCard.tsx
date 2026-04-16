@@ -17,36 +17,43 @@ export function StatCard({
   variant = "primary",
 }: StatCardProps) {
   const variants = {
-    primary: "bg-primary/10 text-primary border-primary/20",
-    secondary: "bg-secondary text-secondary-foreground border-secondary",
-    accent: "bg-accent/10 text-accent border-accent/20",
-    muted: "bg-muted text-muted-foreground border-muted",
+    primary: "bg-primary/[0.06] border-primary/12 hover:border-primary/25",
+    secondary: "bg-secondary/60 border-secondary hover:border-secondary",
+    accent: "bg-accent/[0.06] border-accent/12 hover:border-accent/25",
+    muted: "bg-muted/50 border-border hover:border-border",
   };
 
   const iconVariants = {
+    primary: "text-primary bg-primary/10",
+    secondary: "text-secondary-foreground bg-secondary",
+    accent: "text-accent bg-accent/10",
+    muted: "text-muted-foreground bg-muted",
+  };
+
+  const valueVariants = {
     primary: "text-primary",
     secondary: "text-secondary-foreground",
     accent: "text-accent",
-    muted: "text-muted-foreground",
+    muted: "text-foreground",
   };
 
   return (
     <div 
       className={cn(
-        "rounded-xl border p-6 transition-all duration-300 hover-lift",
+        "rounded-xl border p-4 transition-all duration-300 hover-lift group",
         variants[variant]
       )}
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-medium opacity-80">{title}</p>
-          <p className="text-3xl font-bold font-display tabular-nums">{value}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
+          <p className={cn("text-2xl font-bold tabular-nums", valueVariants[variant])} style={{ fontFamily: "'Playfair Display', serif" }}>{value}</p>
           {subtitle && (
-            <p className="text-xs opacity-70">{subtitle}</p>
+            <p className="text-[11px] text-muted-foreground">{subtitle}</p>
           )}
         </div>
-        <div className={cn("p-3 rounded-lg bg-background/50 transition-transform group-hover:scale-110", iconVariants[variant])}>
-          <Icon className="h-6 w-6" />
+        <div className={cn("p-2 rounded-lg transition-transform duration-300 group-hover:scale-110", iconVariants[variant])}>
+          <Icon className="h-4 w-4" />
         </div>
       </div>
     </div>

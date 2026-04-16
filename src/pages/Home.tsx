@@ -1,8 +1,7 @@
 import { Layout } from "@/components/Layout";
 import { FeatureCard } from "@/components/FeatureCard";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, ClipboardList, BarChart3, ArrowRight, Sparkles } from "lucide-react";
+import { TrendingUp, ClipboardList, BarChart3, ArrowRight, Leaf, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroCattle from "@/assets/hero-cattle.jpg";
 
@@ -10,50 +9,48 @@ const Home = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[500px] lg:min-h-[600px] overflow-hidden">
-        {/* Background Image - Left Side */}
+      <section className="relative min-h-[520px] lg:min-h-[580px] overflow-hidden">
+        {/* Background Image */}
         <div className="absolute inset-0 lg:w-[55%]">
           <img
             src={heroCattle}
             alt="Cattle grazing on pasture"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background lg:block hidden" />
-          <div className="absolute inset-0 bg-background/60 lg:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-background/30 to-background lg:block hidden" />
+          <div className="absolute inset-0 bg-background/65 lg:hidden" />
         </div>
 
-        {/* Content - Right Side */}
+        {/* Content */}
         <div className="relative container max-w-7xl mx-auto px-4 h-full">
-          <div className="flex items-center min-h-[500px] lg:min-h-[600px]">
-            <div className="lg:ml-auto lg:w-1/2 py-12 lg:pl-12">
+          <div className="flex items-center min-h-[520px] lg:min-h-[580px]">
+            <div className="lg:ml-auto lg:w-[48%] py-14 lg:pl-10">
               <div className="animate-slide-up">
-                <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
+                <div className="inline-flex items-center gap-2 bg-primary/8 text-primary text-xs font-semibold px-3.5 py-1.5 rounded-full border border-primary/15 mb-5">
+                  <Leaf className="h-3 w-3" />
+                  Fibonacci-Based Growth Model
+                </div>
+                <h1 className="text-4xl md:text-5xl lg:text-[3.4rem] font-bold text-foreground leading-[1.1] mb-5" style={{ fontFamily: "'Playfair Display', serif" }}>
                   Data-Backed
                   <br />
-                  <span className="text-primary">Population Insights</span>
+                  <span className="text-primary">Herd Insights</span>
                 </h1>
               </div>
-              <p className="text-lg text-muted-foreground max-w-xl mb-8 animate-slide-up stagger-1">
-                Whether you need short-term, high-precision forecasting, timeless
-                long-term sustainability models, or bold scenario analysis reports.
+              <p className="text-base lg:text-lg text-muted-foreground max-w-lg mb-8 leading-relaxed animate-slide-up stagger-1">
+                High-precision forecasting, long-term sustainability models, and actionable variance analysis — all in one system.
               </p>
 
-              {/* Feature Badges */}
-              <div className="flex flex-wrap gap-3 mb-8 animate-slide-up stagger-2">
-                <Badge variant="outline" className="px-4 py-2 text-sm font-medium hover-lift cursor-default">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  HIGH QUALITY
-                </Badge>
-                <Badge variant="outline" className="px-4 py-2 text-sm font-medium hover-lift cursor-default">
-                  PREMIUM DESIGN
-                </Badge>
-                <Badge variant="outline" className="px-4 py-2 text-sm font-medium hover-lift cursor-default">
-                  VERSATILE
-                </Badge>
+              <div className="flex flex-wrap items-center gap-3 animate-slide-up stagger-2">
                 <Link to="/herd-projection">
-                  <Button className="gap-2 hover-lift">
-                    LEARN MORE
+                  <Button variant="hero" size="lg" className="gap-2 rounded-xl shadow-lg">
+                    Get Started
                     <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link to="/about">
+                  <Button variant="outline" size="lg" className="gap-2 rounded-xl">
+                    Learn More
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </div>
@@ -63,48 +60,57 @@ const Home = () => {
       </section>
 
       {/* Feature Cards Section */}
-      <section className="container max-w-7xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-3 gap-6">
+      <section className="container max-w-7xl mx-auto px-4 py-14">
+        <div className="text-center mb-10 animate-fade-in">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-2">Core Features</p>
+          <h2 className="text-3xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Everything You Need
+          </h2>
+        </div>
+        <div className="grid md:grid-cols-3 gap-5">
           <div className="animate-slide-up stagger-1">
             <FeatureCard
               number="01"
               title="Smart Herd Forecasting"
-              description="Predict future herd size."
+              description="Predict future herd size with Fibonacci-based growth projections."
               href="/herd-projection"
               icon={TrendingUp}
-              gradient="bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600"
+              gradient="bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-500"
             />
           </div>
           <div className="animate-slide-up stagger-2">
             <FeatureCard
               number="02"
-              title="Real-Time Data Capture"
-              description="Log critical farm activities."
-              href="/event-logging"
+              title="Stochastic Event Simulation"
+              description="Simulate births, deaths, and sales with probabilistic models and environmental shocks."
+              href="/event-simulation"
               icon={ClipboardList}
-              gradient="bg-gradient-to-br from-slate-700 via-slate-600 to-slate-500"
+              gradient="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-500"
             />
           </div>
           <div className="animate-slide-up stagger-3">
             <FeatureCard
               number="03"
               title="Performance Benchmarking"
-              description="Compare your current herd's performance metrics."
+              description="Compare projected vs actual with MAE, MAPE, RMSE metrics."
               href="/comparison-report"
               icon={BarChart3}
-              gradient="bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-500"
+              gradient="bg-gradient-to-br from-amber-600 via-orange-500 to-yellow-500"
             />
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="bg-secondary/50 py-16">
+      <section className="py-16 gradient-surface">
         <div className="container max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-display font-bold mb-8 text-center animate-fade-in">
-            How the Fibonacci Model Works
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center mb-10 animate-fade-in">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-2">Methodology</p>
+            <h2 className="text-3xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+              How the Fibonacci Model Works
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 step: "1",
@@ -119,18 +125,18 @@ const Home = () => {
               {
                 step: "3",
                 title: "Realistic Factors",
-                desc: "The model accounts for birth rates and mortality, providing a realistic projection that helps farmers and managers plan for the future.",
+                desc: "The model accounts for birth rates, mortality, and culling — providing realistic projections that help farmers plan for the future.",
               },
             ].map((item, index) => (
               <div
                 key={item.step}
-                className={`bg-background rounded-xl p-6 shadow-sm hover-lift animate-slide-up stagger-${index + 1}`}
+                className={`bg-card rounded-2xl p-7 shadow-card hover-lift border border-border/50 animate-slide-up stagger-${index + 1}`}
               >
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <span className="text-xl font-bold text-primary">{item.step}</span>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
+                  <span className="text-lg font-bold text-primary" style={{ fontFamily: "'Playfair Display', serif" }}>{item.step}</span>
                 </div>
-                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm">{item.desc}</p>
+                <h3 className="font-semibold text-lg mb-2 text-foreground">{item.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -139,10 +145,13 @@ const Home = () => {
 
       {/* Who Can Use Section */}
       <section className="container max-w-7xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-display font-bold mb-8 text-center animate-fade-in">
-          Who Can Use This System?
-        </h2>
-        <div className="grid md:grid-cols-3 gap-6 text-center">
+        <div className="text-center mb-10 animate-fade-in">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-2">Built For</p>
+          <h2 className="text-3xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Who Can Use This System?
+          </h2>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6">
           {[
             {
               emoji: "🧑‍🌾",
@@ -151,8 +160,8 @@ const Home = () => {
             },
             {
               emoji: "🏛️",
-              title: "University Farm Managers",
-              desc: "Predict milk and meat production capacity for research and educational purposes.",
+              title: "Farm Managers",
+              desc: "Predict milk and meat production capacity for research and institutional planning.",
             },
             {
               emoji: "📚",
@@ -160,12 +169,15 @@ const Home = () => {
               desc: "Learn herd dynamics with a simple, visual model based on mathematical principles.",
             },
           ].map((item, index) => (
-            <div key={item.title} className={`p-6 animate-scale-in stagger-${index + 1}`}>
-              <div className="w-16 h-16 rounded-full bg-accent mx-auto mb-4 flex items-center justify-center animate-float" style={{ animationDelay: `${index * 0.5}s` }}>
+            <div
+              key={item.title}
+              className={`bg-card border border-border/50 rounded-2xl p-7 text-center shadow-card hover-lift animate-scale-in stagger-${index + 1}`}
+            >
+              <div className="w-14 h-14 rounded-2xl bg-accent/10 mx-auto mb-5 flex items-center justify-center animate-float" style={{ animationDelay: `${index * 0.5}s` }}>
                 <span className="text-2xl">{item.emoji}</span>
               </div>
-              <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-              <p className="text-muted-foreground text-sm">{item.desc}</p>
+              <h3 className="font-semibold text-lg mb-2 text-foreground">{item.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>

@@ -51,24 +51,25 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
   };
 
   return (
-    <Card className="shadow-card hover:shadow-card-hover transition-all duration-300">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-display flex items-center gap-2">
-          <Beef className="h-6 w-6 text-primary" />
-          Herd Configuration
+    <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 border-border/50 rounded-2xl overflow-hidden">
+      <CardHeader className="space-y-1 pb-4">
+        <CardTitle className="text-xl flex items-center gap-2.5" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Beef className="h-4 w-4 text-primary" />
+          </div>
+          Configuration
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs">
           Enter your current herd details to generate growth projections
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Female Adults */}
-            <div className="space-y-2 group">
-              <Label htmlFor="femaleAdults" className="flex items-center gap-2 text-sm font-medium">
-                <Beef className="h-4 w-4 text-primary transition-transform group-focus-within:scale-110" />
-                Adult Females (breeding cows)
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5 group">
+              <Label htmlFor="femaleAdults" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Beef className="h-3.5 w-3.5 text-primary" />
+                Adult Females
               </Label>
               <Input
                 id="femaleAdults"
@@ -77,15 +78,14 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
                 max={10000}
                 value={femaleAdults}
                 onChange={(e) => setFemaleAdults(parseInt(e.target.value) || 0)}
-                className="text-lg transition-all focus:ring-2 focus:ring-primary/20"
+                className="text-base h-10"
               />
             </div>
 
-            {/* Male Adults */}
-            <div className="space-y-2 group">
-              <Label htmlFor="maleAdults" className="flex items-center gap-2 text-sm font-medium">
-                <Beef className="h-4 w-4 text-chart-males transition-transform group-focus-within:scale-110" />
-                Adult Males (bulls)
+            <div className="space-y-1.5 group">
+              <Label htmlFor="maleAdults" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Beef className="h-3.5 w-3.5 text-chart-males" />
+                Adult Males
               </Label>
               <Input
                 id="maleAdults"
@@ -94,15 +94,14 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
                 max={10000}
                 value={maleAdults}
                 onChange={(e) => setMaleAdults(parseInt(e.target.value) || 0)}
-                className="text-lg transition-all focus:ring-2 focus:ring-primary/20"
+                className="text-base h-10"
               />
             </div>
 
-            {/* Young Cattle */}
-            <div className="space-y-2 group md:col-span-2">
-              <Label htmlFor="young" className="flex items-center gap-2 text-sm font-medium">
-                <Baby className="h-4 w-4 text-accent transition-transform group-focus-within:scale-110" />
-                Young Cattle (calves & yearlings)
+            <div className="space-y-1.5 group md:col-span-2">
+              <Label htmlFor="young" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Baby className="h-3.5 w-3.5 text-accent" />
+                Young Cattle
               </Label>
               <Input
                 id="young"
@@ -111,90 +110,57 @@ export function HerdInputForm({ onSubmit, initialValues }: HerdInputFormProps) {
                 max={10000}
                 value={young}
                 onChange={(e) => setYoung(parseInt(e.target.value) || 0)}
-                className="text-lg transition-all focus:ring-2 focus:ring-accent/20"
+                className="text-base h-10"
               />
             </div>
           </div>
 
-          {/* Projection Years */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              Projection Period: <span className="text-primary font-semibold tabular-nums">{years} years</span>
-            </Label>
-            <Slider
-              value={[years]}
-              onValueChange={(value) => setYears(value[0])}
-              min={1}
-              max={20}
-              step={1}
-              className="py-2"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>1 year</span>
-              <span>20 years</span>
+          <div className="space-y-5 pt-2">
+            {/* Projection Years */}
+            <div className="space-y-2.5">
+              <Label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+                Projection Period: <span className="text-primary font-semibold tabular-nums ml-auto">{years} years</span>
+              </Label>
+              <Slider value={[years]} onValueChange={(v) => setYears(v[0])} min={1} max={20} step={1} className="py-1" />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>1 year</span><span>20 years</span>
+              </div>
+            </div>
+
+            {/* Birth Rate */}
+            <div className="space-y-2.5">
+              <Label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Heart className="h-3.5 w-3.5 text-chart-secondary" />
+                Birth Rate: <span className="text-primary font-semibold tabular-nums ml-auto">{birthRate}%</span>
+              </Label>
+              <Slider value={[birthRate]} onValueChange={(v) => setBirthRate(v[0])} min={50} max={100} step={5} className="py-1" />
+              <p className="text-[10px] text-muted-foreground">% of adult cows producing calves annually</p>
+            </div>
+
+            {/* Mortality Rate */}
+            <div className="space-y-2.5">
+              <Label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Skull className="h-3.5 w-3.5 text-destructive" />
+                Mortality: <span className="text-primary font-semibold tabular-nums ml-auto">{mortalityRate}%</span>
+              </Label>
+              <Slider value={[mortalityRate]} onValueChange={(v) => setMortalityRate(v[0])} min={1} max={15} step={1} className="py-1" />
+              <p className="text-[10px] text-muted-foreground">Annual death rate across entire herd</p>
+            </div>
+
+            {/* Cull Rate */}
+            <div className="space-y-2.5">
+              <Label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Scissors className="h-3.5 w-3.5 text-chart-males" />
+                Cull / Sales: <span className="text-primary font-semibold tabular-nums ml-auto">{cullRate}%</span>
+              </Label>
+              <Slider value={[cullRate]} onValueChange={(v) => setCullRate(v[0])} min={0} max={25} step={1} className="py-1" />
+              <p className="text-[10px] text-muted-foreground">% of adults removed for sales or culling</p>
             </div>
           </div>
 
-          {/* Birth Rate */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <Heart className="h-4 w-4 text-chart-secondary" />
-              Birth Rate: <span className="text-primary font-semibold tabular-nums">{birthRate}%</span>
-            </Label>
-            <Slider
-              value={[birthRate]}
-              onValueChange={(value) => setBirthRate(value[0])}
-              min={50}
-              max={100}
-              step={5}
-              className="py-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Percentage of adult cows producing calves annually
-            </p>
-          </div>
-
-          {/* Mortality Rate */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <Skull className="h-4 w-4 text-destructive" />
-              Mortality Rate: <span className="text-primary font-semibold tabular-nums">{mortalityRate}%</span>
-            </Label>
-            <Slider
-              value={[mortalityRate]}
-              onValueChange={(value) => setMortalityRate(value[0])}
-              min={1}
-              max={15}
-              step={1}
-              className="py-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Annual death rate across the entire herd
-            </p>
-          </div>
-
-          {/* Cull / Sales Rate */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <Scissors className="h-4 w-4 text-chart-males" />
-              Cull / Sales Rate: <span className="text-primary font-semibold tabular-nums">{cullRate}%</span>
-            </Label>
-            <Slider
-              value={[cullRate]}
-              onValueChange={(value) => setCullRate(value[0])}
-              min={0}
-              max={25}
-              step={1}
-              className="py-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Percentage of adults removed annually for sales or culling
-            </p>
-          </div>
-
-          <Button type="submit" variant="hero" size="lg" className="w-full hover-lift group">
-            <TrendingUp className="h-5 w-5 mr-2 transition-transform group-hover:translate-x-1" />
+          <Button type="submit" variant="hero" size="lg" className="w-full rounded-xl hover-lift group">
+            <TrendingUp className="h-5 w-5 mr-2 transition-transform group-hover:translate-x-0.5" />
             Generate Projection
           </Button>
         </form>

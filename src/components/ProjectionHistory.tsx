@@ -1,5 +1,15 @@
 import { useState } from "react";
 import { History, Download, Trash2, Pencil, Check, X, Plus } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { HerdData } from "@/lib/herdCalculations";
+import { HerdData, ActualRecord } from "@/lib/herdCalculations";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
@@ -28,6 +38,7 @@ export interface ProjectionSnapshot {
     cullRate: number;
   };
   projections: HerdData[];
+  eventRecords?: ActualRecord[];
 }
 
 interface ProjectionHistoryProps {
@@ -76,6 +87,7 @@ export function ProjectionHistory({ currentProjections, currentConfig, onLoad }:
   const [editName, setEditName] = useState("");
   const [saveName, setSaveName] = useState("");
   const [showSave, setShowSave] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleSave = () => {
     if (!currentConfig || currentProjections.length === 0) {
@@ -83,12 +95,21 @@ export function ProjectionHistory({ currentProjections, currentConfig, onLoad }:
       return;
     }
     const name = saveName.trim() || `Projection ${new Date().toLocaleDateString("en-AU")}`;
+    // Also capture current event records
+    let eventRecords: ActualRecord[] = [];
+    try {
+      const session = window.localStorage.getItem("fhps-session");
+      const prefix = session ? `fhps-${JSON.parse(session).id}` : "fhps-guest";
+      const stored = window.localStorage.getItem(`${prefix}-event-records`);
+      if (stored) eventRecords = JSON.parse(stored);
+    } catch {}
     const snapshot: ProjectionSnapshot = {
       id: Date.now().toString(),
       name,
       savedAt: new Date().toISOString(),
       config: currentConfig,
       projections: currentProjections,
+      eventRecords,
     };
     setSnapshots(prev => [snapshot, ...prev]);
     setSaveName("");
@@ -96,8 +117,10 @@ export function ProjectionHistory({ currentProjections, currentConfig, onLoad }:
     toast.success(`Saved "${name}"`);
   };
 
-  const handleDelete = (id: string) => {
-    setSnapshots(prev => prev.filter(s => s.id !== id));
+  const handleDeleteConfirm = () => {
+    if (!deleteId) return;
+    setSnapshots(prev => prev.filter(s => s.id !== deleteId));
+    setDeleteId(null);
     toast.success("Snapshot deleted.");
   };
 
@@ -220,7 +243,7 @@ export function ProjectionHistory({ currentProjections, currentConfig, onLoad }:
                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => downloadCsv(snapshot)} title="Download CSV">
                       <Download className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:text-destructive" onClick={() => handleDelete(snapshot.id)} title="Delete">
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:text-destructive" onClick={() => setDeleteId(snapshot.id)} title="Delete">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -230,6 +253,23 @@ export function ProjectionHistory({ currentProjections, currentConfig, onLoad }:
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Snapshot?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this saved projection. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
